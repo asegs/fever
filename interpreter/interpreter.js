@@ -1,4 +1,5 @@
 const builtin = require('./builtin');
+const fs = require('fs')
 
 const tokenize = (line) => {
 	for (let i = 0 ; i < line.length ; i ++ ) {
@@ -91,6 +92,14 @@ const interpretBlock = (text) => {
 	for (const line of lines) {
 		vars = interpretLine(line,vars);
 	}
+	return vars
 }
 
-console.log(interpretBlock("add a b = + a b\nc = add 3 2"))
+const interpretFile = (filename) => {
+    const data = fs.readFileSync(filename, 'utf8');
+    const vars = interpretBlock(data);
+    console.log(vars);
+    return vars;
+}
+
+interpretFile("code.fv");
