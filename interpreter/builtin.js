@@ -23,6 +23,20 @@ module.exports = {
             operation: (a,b) => a/b,
             help: "Divides two numbers.",
             generated: false
+        },
+        "show": {
+            arity: [[0],[0]],
+            operation: (val) => {
+                console.log(val)
+            },
+            generated: false
+        },
+        "eq": {
+            arity: [[0,0],[0]],
+            operation: (a,b) => {
+                return a === b;
+            },
+            generated: false
         }
 
     }

@@ -38,7 +38,16 @@ const functor = (gen, vars) => {
         }else {
             return func.operation(...spreadables);
         }
-	} else if (arg in vars) {
+	} else if (arg in interpreterFunctions){
+	    const func = interpreterFunctions[arg];
+        const spreadables = func.arity[0].map(_ => functor(gen, vars));
+        let rebuilt = "";
+        for (const a of gen) {
+            rebuilt += " " + a;
+        }
+        rebuilt = rebuilt.trim();
+        return func.operation(...spreadables, rebuilt, vars);
+    } else if (arg in vars) {
 		return vars[arg];
 	} else {
 		return arg
@@ -81,7 +90,6 @@ const interpretLine = (line,vars) => {
         if (tokens[0] !== '_') {
             vars[tokens[0]] = result;
         }
-        console.log(result);
         return vars;
     }
 }
@@ -97,9 +105,19 @@ const interpretBlock = (text) => {
 
 const interpretFile = (filename) => {
     const data = fs.readFileSync(filename, 'utf8');
-    const vars = interpretBlock(data);
-    console.log(vars);
-    return vars;
+    return interpretBlock(data);
+}
+
+const interpreterFunctions = {
+    "if": {
+        arity: [[0],[0]],
+        operation: (test, remainder, vars) => {
+            if (test) {
+                interpretExpression(remainder, vars)
+            }
+        },
+        generated: false
+    }
 }
 
 interpretFile("code.fv");

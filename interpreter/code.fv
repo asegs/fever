@@ -1,4 +1,5 @@
-add a b = + a b
-add 3 2
-square a = * a a
-square 4
+square n = * n n
+cube n = * n square n
+show cube 3
+if eq 2 2 show 5
+if eq 2 3 show 5
