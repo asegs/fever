@@ -98,9 +98,15 @@ const interpretBlock = (text) => {
 	let vars = {};
 	const lines = text.split("\n");
 	for (const line of lines) {
-		vars = interpretLine(line,vars);
+		if (!lineIsComment(line)) {
+            vars = interpretLine(line,vars);
+        }
 	}
 	return vars
+}
+
+const lineIsComment = (line) => {
+    return line[0] === '/';
 }
 
 const interpretFile = (filename) => {

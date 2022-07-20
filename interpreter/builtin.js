@@ -37,7 +37,21 @@ module.exports = {
                 return a === b;
             },
             generated: false
-        }
+        },
+        ">": {
+            arity: [[0,0],[0]],
+            operation: (a,b) => {
+                return a > b;
+            },
+            generated: false
+        },
+        "<": {
+            arity: [[0,0],[0]],
+            operation: (a,b) => {
+                return a < b;
+            },
+            generated: false
+        },
 
     }
 }
