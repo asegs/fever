@@ -1,11 +1,15 @@
-square n = * n n
-cube n = * n square n
-x=3
+x = 3 * 3
+show x
+square n = (n * n)
+cube n = n * square n
 show cube 3
-if eq 2 2 show * x 8
-if < 2 3 show What
-
-
-/x = [1,2,3,4] -> square  // [1,4,9,16]
+show (3+3)
+show (x*x*x)
+a = [1,2,3]
+show a
+/if eq 2 2 show (x * 8)
+/if < 2 3 show What
+x = [1,2,3,4] -> square -> square
+show x
 /y = [1,2,3,4] -> + 3 // [4,5,6,7]
 /z = [1,2,3,4] -> / 4 @ // [4,2,1.3333,1]
