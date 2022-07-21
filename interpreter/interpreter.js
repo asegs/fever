@@ -13,6 +13,12 @@ const tokenize = (line) => {
 	return ["_",line]
 }
 
+const isVariableName = (varName) => {
+    const regex = /^[a-zA-Z_$][a-zA-Z_$0-9]*$/;
+    const found = varName.match(regex);
+    return !isNumeric(varName) && !!found && varName === found[0];
+}
+
 function* argGenerator (expression) {
     const chunks = expression.split(" ").filter(c => c !== "");
     for (let i = 0 ; i < chunks.length ; i ++ ) {
@@ -101,10 +107,12 @@ const generateFunction = (token, action, vars) => {
     const assignArgs = token.split(" ");
     const funcName = assignArgs[0];
     const args = assignArgs.slice(1);
-
+    console.log(args)
+    //Define a list of functions to perform based on supplied args pattern match.
     builtin.functions[funcName] = {
          arity: [args.map(_=>0),[0]],
          operation: (supplied) => {
+
              const suppliedMap = {};
              for (let i = 0 ; i < args.length ; i ++ ) {
                  suppliedMap[args[i]] = supplied[i];

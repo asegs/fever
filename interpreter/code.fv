@@ -9,5 +9,8 @@ a = [1,2,3]
 show a
 x = [1,2,3,4] -> square -> square
 z = x -> cube
-show z
 show x
+show x -> cube
+fib 0 = 0
+fib 1 = 1
+fib n = fib (n-1) + fib (n-2)
