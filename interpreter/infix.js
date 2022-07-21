@@ -74,4 +74,7 @@ const infixToPrefix = (infix) => {
     return operandStack.join("");
 }
 
+//Causing trouble
+//fib n = fib (n-1) + fib (n-2)
+
 module.exports = {infixToPrefix}

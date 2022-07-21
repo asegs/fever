@@ -46,6 +46,47 @@ const peeker = iterator => {
     return { peeked, rebuiltIterator };
 }
 
+const patternsMatch = (pattern, vars) => {
+    console.log(pattern)
+    console.log(vars)
+    if (pattern.length !== vars.length) {
+        return false;
+    }
+    for (let i = 0 ; i < pattern.length ; i ++ ) {
+        if (!isVariableName(pattern[i])) {
+            if (pattern[i] !== vars[i]) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+
+const doFunctionOperation = (func, variables) => {
+    variables = Object.values(variables);
+    if (Array.isArray(func.operation)) {
+        let operationList = func.operation;
+        operationList.sort((a,b) => {
+            const aNonVariablesCount = a.pattern.filter(p => !isVariableName(p)).length;
+            const bNonVariablesCount = b.pattern.filter(p => !isVariableName(p)).length;
+            if (aNonVariablesCount > bNonVariablesCount) {
+                return -1;
+            }
+            if (aNonVariablesCount < bNonVariablesCount) {
+                return 1;
+            }
+            return 0;
+        })
+        for (const op of operationList) {
+            if (patternsMatch(op.pattern,variables)) {
+                return op.behavior(variables);
+            }
+        }
+        throw "Non exhaustive pattern match with function: " + func.name;
+    }
+}
+
 const functor = (gen, vars) => {
 	let arg = gen.next().value;
     arg = parseToForm(arg);
@@ -57,7 +98,7 @@ const functor = (gen, vars) => {
             return result[1];
         });
 		if (func.generated) {
-            return [gen, func.operation(spreadables)];
+            return [gen, doFunctionOperation(func, vars)];
         }else {
             return [gen, func.operation(...spreadables)];
         }
@@ -107,20 +148,28 @@ const generateFunction = (token, action, vars) => {
     const assignArgs = token.split(" ");
     const funcName = assignArgs[0];
     const args = assignArgs.slice(1);
-    console.log(args)
     //Define a list of functions to perform based on supplied args pattern match.
-    builtin.functions[funcName] = {
-         arity: [args.map(_=>0),[0]],
-         operation: (supplied) => {
+    if (!(funcName in builtin.functions)) {
+        builtin.functions[funcName] = {
+            arity: [args.map(_=>0),[0]],
+            operation: [],
+            generated: true,
+            name: funcName
+        }
+    }
+    builtin.functions[funcName].operation.push(
+        {
+            pattern: args,
+            behavior: (supplied) => {
 
-             const suppliedMap = {};
-             for (let i = 0 ; i < args.length ; i ++ ) {
-                 suppliedMap[args[i]] = supplied[i];
-             }
-             return interpretExpression(action, {...vars, ...suppliedMap});
-         },
-         generated: true
-     }
+                const suppliedMap = {};
+                for (let i = 0 ; i < args.length ; i ++ ) {
+                    suppliedMap[args[i]] = supplied[i];
+                }
+                return interpretExpression(action, {...vars, ...suppliedMap});
+            }
+        }
+    )
 }
 
 const interpretExpression = (expr, vars) => {
@@ -131,6 +180,7 @@ const interpretExpression = (expr, vars) => {
 const interpretLine = (line,vars) => {
 	const tokens = tokenize(line).map(token=>token.trim());
     const converted = converter.infixToPrefix(tokens[1]);
+    console.log(converted)
     if (isFunctionDef(tokens[0])) {
 	    generateFunction(tokens[0], converted, vars);
         return vars;
