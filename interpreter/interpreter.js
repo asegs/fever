@@ -68,9 +68,10 @@ const functor = (gen, vars) => {
         }
         rebuilt = rebuilt.trim();
         return [gen, func.operation(...spreadables, rebuilt, vars)];
-    } else if (arg in vars) {
-		return [gen, vars[arg]];
-	} else {
+    } else {
+        if (arg in vars) {
+            arg = vars[arg];
+        }
         const peeked = peeker(gen);
         if (peeked.peeked.value === "->") {
             const toApply = gen.next().value;
@@ -115,7 +116,6 @@ const generateFunction = (token, action, vars) => {
 }
 
 const interpretExpression = (expr, vars) => {
-    console.log(expr)
     const gen = argGenerator(expr, vars);
     return functor(gen, vars)[1];
 }
