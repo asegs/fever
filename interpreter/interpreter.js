@@ -64,7 +64,6 @@ const patternsMatch = (pattern, vars) => {
 
 
 const doFunctionOperation = (func, variables) => {
-    variables = Object.values(variables);
     if (Array.isArray(func.operation)) {
         let operationList = func.operation;
         operationList.sort((a,b) => {
@@ -98,7 +97,7 @@ const functor = (gen, vars) => {
             return result[1];
         });
 		if (func.generated) {
-            return [gen, doFunctionOperation(func, vars)];
+            return [gen, doFunctionOperation(func, spreadables)];
         }else {
             return [gen, func.operation(...spreadables)];
         }
@@ -180,7 +179,6 @@ const interpretExpression = (expr, vars) => {
 const interpretLine = (line,vars) => {
 	const tokens = tokenize(line).map(token=>token.trim());
     const converted = converter.infixToPrefix(tokens[1]);
-    console.log(converted)
     if (isFunctionDef(tokens[0])) {
 	    generateFunction(tokens[0], converted, vars);
         return vars;
