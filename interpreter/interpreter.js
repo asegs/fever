@@ -47,14 +47,12 @@ const peeker = iterator => {
 }
 
 const patternsMatch = (pattern, vars) => {
-    console.log(pattern)
-    console.log(vars)
     if (pattern.length !== vars.length) {
         return false;
     }
     for (let i = 0 ; i < pattern.length ; i ++ ) {
         if (!isVariableName(pattern[i])) {
-            if (pattern[i] !== vars[i]) {
+            if (parseToForm(pattern[i]) !== vars[i]) {
                 return false;
             }
         }
