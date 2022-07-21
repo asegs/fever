@@ -53,7 +53,7 @@ const infixToPrefix = (infix) => {
                 operandStack.push(operator+ " "  + left + " " + right);
             }
             encounteredOperator = true;
-            operatorStack.pop();
+            //operatorStack.pop();
         } else if (prec(token) <= prec(top(operatorStack))) {
             while (operatorStack.length > 0 && prec(token) <= prec(top(operatorStack))) {
                 const operator = operatorStack.pop();
@@ -71,7 +71,7 @@ const infixToPrefix = (infix) => {
         const left = operandStack.pop();
         operandStack.push(operator + " " + left + " "  + right);
     }
-    return operandStack.join("");
+    return operandStack.join("").replace(/[)}{(]/g, '');
 }
 
 //Causing trouble

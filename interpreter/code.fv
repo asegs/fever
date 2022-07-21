@@ -1,3 +1,17 @@
+x = 3 * 3
+show x
+square n = n * n
+show square 3
+cube n = n * square n
+show cube 3
+show (3+3)
+show (x*x*x)
+a = [1,2,3]
+show a
+x = [1,2,3,4] -> square -> square
+z = x -> cube
+show x
+show x -> cube
 fac 0 = 1
 fac n = n * fac (n - 1)
-show fac 0
+show fac 3

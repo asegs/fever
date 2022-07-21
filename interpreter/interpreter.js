@@ -1,4 +1,4 @@
-
+const prompt = require('prompt-sync')();
 const builtin = require('./builtin');
 const converter = require('./infix');
 const fs = require('fs')
@@ -234,4 +234,17 @@ const parseToForm = (data) => {
     return data
 }
 
-interpretFile("code.fv");
+const interactive = () => {
+    let vars = {};
+    while (true) {
+        const line = prompt('>');
+        if (line == null) {
+            return;
+        }
+        if (line.length > 0 && !lineIsComment(line)) {
+            vars = interpretLine(line,vars);
+        }
+    }
+}
+
+interactive();
