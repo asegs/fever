@@ -77,7 +77,13 @@ const doFunctionOperation = (func, variables) => {
         })
         for (const op of operationList) {
             if (patternsMatch(op.pattern,variables)) {
-                return op.behavior(variables);
+                const sig = JSON.stringify(variables);
+                if (sig in func.cached) {
+                    return func.cached[sig];
+                }
+                const result = op.behavior(variables);
+                func.cached[sig] = result;
+                return result;
             }
         }
         throw "Non exhaustive pattern match with function: " + func.name;
@@ -144,17 +150,21 @@ const isFunctionDef = (token) => {
 const generateFunction = (token, action, vars) => {
     const assignArgs = token.split(" ");
     const funcName = assignArgs[0];
+    const memo = funcName.startsWith("@m_");
+    const fmtFuncName = memo ? funcName.slice(3) : funcName;
     const args = assignArgs.slice(1);
     //Define a list of functions to perform based on supplied args pattern match.
-    if (!(funcName in builtin.functions)) {
-        builtin.functions[funcName] = {
+    if (!(fmtFuncName in builtin.functions)) {
+        builtin.functions[fmtFuncName] = {
             arity: [args.map(_=>0),[0]],
             operation: [],
             generated: true,
-            name: funcName
+            name: fmtFuncName,
+            memoize: memo,
+            cached: {}
         }
     }
-    builtin.functions[funcName].operation.push(
+    builtin.functions[fmtFuncName].operation.push(
         {
             pattern: args,
             behavior: (supplied) => {
