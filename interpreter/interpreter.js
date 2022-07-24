@@ -186,7 +186,9 @@ const interpretExpression = (expr, vars) => {
 
 const interpretLine = (line,vars) => {
 	const tokens = tokenize(line).map(token=>token.trim());
+    console.log("Original code: " + tokens[1])
     const converted = converter.infixToPrefix(tokens[1]);
+    console.log("Prefixed to: " + converted)
     if (isFunctionDef(tokens[0])) {
 	    generateFunction(tokens[0], converted, vars);
         return vars;
@@ -257,4 +259,5 @@ const interactive = () => {
     }
 }
 
+interpretFile("code.fv");
 interactive();
