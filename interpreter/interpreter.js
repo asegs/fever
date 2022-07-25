@@ -1,6 +1,7 @@
 const prompt = require('prompt-sync')();
 const builtin = require('./builtin');
 const converter = require('./infix');
+const std = require('./std');
 const fs = require('fs')
 
 const tokenize = (line) => {
@@ -13,10 +14,14 @@ const tokenize = (line) => {
 	return ["_",line]
 }
 
+const isBoolean = (str) => {
+    return str === "true" || str === "false"
+}
+
 const isVariableName = (varName) => {
     const regex = /^[a-zA-Z_$][a-zA-Z_$0-9]*$/;
     const found = varName.match(regex);
-    return !isNumeric(varName) && !!found && varName === found[0];
+    return !isNumeric(varName) && !isBoolean(varName) && !!found && varName === found[0];
 }
 
 function* argGenerator (expression) {
@@ -135,8 +140,8 @@ const functor = (gen, vars, withData) => {
         if (arg === "\\>") {
             const acc = parseToForm(gen.next().value);
             const newSeq = rebuildUntilClosed(gen);
-            return withData.reduce((acc, v) => {
-                const newVal = {"@": v,"$": acc};
+            return withData.reduce((acc, v, idx) => {
+                const newVal = {"@": v,"$": acc, "#": idx};
                 return interpretExpression(newSeq, {...vars, ...newVal});
             }, acc)
 
@@ -211,9 +216,6 @@ const interpretExpression = (expr, vars) => {
             gen = remaining.rebuiltIterator();
         }
     }
-    if (show) {
-        console.log(pointFreeArg);
-    }
     return pointFreeArg;
 }
 
@@ -225,6 +227,11 @@ const interpretLine = (line,vars) => {
         return vars;
     } else {
         const result = interpretExpression(converted, vars);
+        if (result === undefined || result === null) {
+            ;
+        } else {
+            console.log(result);
+        }
         if (tokens[0] !== '_') {
             vars[tokens[0]] = result;
         }
@@ -234,6 +241,7 @@ const interpretLine = (line,vars) => {
 
 const interpretBlock = (text) => {
 	let vars = {};
+	loadStd(vars);
 	const lines = text.split("\n");
 	for (const line of lines) {
 		if (!lineIsComment(line) && line.length > 0) {
@@ -264,8 +272,21 @@ const interpreterFunctions = {
     }
 }
 
+const isArrayIndex = (str) => {
+    const match = /.+\[.+]/g;
+
+
+
+}
+
 //Doesn't support nested arrays.
 const parseToForm = (data) => {
+    if (data === "true") {
+        return true;
+    }
+    if (data === "false") {
+        return false;
+    }
     if (isString(data)) {
         return data.slice(1,data.length - 1);
     } else if (isNumeric(data)) {
@@ -279,6 +300,7 @@ const parseToForm = (data) => {
 
 const interactive = () => {
     let vars = {};
+    loadStd(vars);
     while (true) {
         const line = prompt('>');
         if (line == null) {
@@ -290,5 +312,12 @@ const interactive = () => {
     }
 }
 
-//interactive();
-interpretFile("code.fv");
+const loadStd = (vars) => {
+    std.fevers.map(fv => {
+        interpretLine(fv, vars);
+    })
+}
+
+
+interactive();
+// interpretFile("code.fv");

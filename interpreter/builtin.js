@@ -2,7 +2,14 @@ module.exports = {
     functions: {
         "+": {
             arity: [[0,0],[0]],
-            operation: (a,b) => a+b,
+            operation: (a,b) => {
+                if (Array.isArray(a) || Array.isArray((b))) {
+                    const x = Array.isArray(a) ? a : [a];
+                    const y = Array.isArray(b) ? b : [b];
+                    return x.concat(y);
+                }
+                return a + b;
+            },
             help: "Adds two numbers.",
             generated: false
         },
@@ -49,13 +56,6 @@ module.exports = {
             arity: [[0,0],[0]],
             operation: (a,b) => {
                 return a < b;
-            },
-            generated: false
-        },
-        "if": {
-            arity: [[0,0,0],[0]],
-            operation: (a,b,c) => {
-                return a ? b : c;
             },
             generated: false
         },
