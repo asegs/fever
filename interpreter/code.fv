@@ -23,3 +23,9 @@
 /show [1,2,3,4]->add 10->fib
 /show fib 604
 /show [1,2,3,4]->add @ 4->mult @ 2
+/x = [1,2,3]
+
+x = []
+y = [1,2,3,4,5,6]
+y -> push x pop y
+show x

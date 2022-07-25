@@ -271,7 +271,7 @@ const parseToForm = (data) => {
     } else if (isNumeric(data)) {
         return parseInt(data);
     } else if (isArray(data)) {
-        const members = data.slice(1,data.length - 1).split(",").filter(m => m !== " " || m !== "");
+        const members = data.slice(1,data.length - 1).split(",").filter(m => m !== " " && m !== "");
         return members.map(m => parseToForm(m));
     }
     return data
@@ -290,4 +290,5 @@ const interactive = () => {
     }
 }
 
-interactive();
+//interactive();
+interpretFile("code.fv");

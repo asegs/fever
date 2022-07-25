@@ -58,6 +58,20 @@ module.exports = {
                 return a ? b : c;
             },
             generated: false
+        },
+        "push": {
+            arity: [[1,0],[0]],
+            operation: (arr, v) => {
+                arr.push(v);
+            },
+            generated: false
+        },
+        "pop": {
+            arity: [[1], [0]],
+            operation: (arr) => {
+                return arr.pop();
+            },
+            generated: false
         }
 
     }
