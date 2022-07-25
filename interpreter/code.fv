@@ -17,4 +17,10 @@
 /show fac 3
 /@m_fib 0 = 0
 /fib 1 = 1
-fib n = (fib n - 1) + (fib n - 2)
+/fib n = (fib (n - 1)) + (fib (n - 2))
+add a b = a + b
+mult a b = a * b
+/show [1,2,3,4]->add 10->fib
+/show fib 604
+m = [1,2,3,4]->add @ 4->mult @ 2
+show m

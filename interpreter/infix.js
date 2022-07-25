@@ -79,7 +79,7 @@ function infixToPrefix(sequence) {
                     blockStart = i + 1;
                     if (i > 0) {
                         blocks.push({
-                            text: seq.slice(lastBlockEnd + 1, i),
+                            text: seq.slice(seq[lastBlockEnd] === ')' ? lastBlockEnd + 1 : lastBlockEnd, i),
                             paren: false
                         })
                     }
@@ -95,7 +95,7 @@ function infixToPrefix(sequence) {
                 }
             }
         }
-        if (lastBlockEnd < seq.length - 1) {
+        if (lastBlockEnd < seq.length - 1 || seq.length === 1) {
             blocks.push({
                 text: seq.slice(lastBlockEnd, seq.length),
                 paren: false
@@ -105,11 +105,21 @@ function infixToPrefix(sequence) {
     }
 
     const tokenize = (seq) => {
-        console.log(parenSplit(seq));
-        return addSpaces(seq).split(" ");
+        return parenSplit(addSpaces(seq)).flatMap(token => {
+            if (token.paren) {
+                return [token];
+            }
+            return token.text.split(" ").map(v => {
+                return {text: v, paren: false}
+            })
+        }).filter(t => t.text.length > 0);
     }
 
     for (let expr of tokenize(sequence)) {
+        if (expr.paren) {
+            expr.text = infixToPrefix(expr.text);
+        }
+        expr = expr.text;
         if (isOperator(expr)) {
             if (!reordering) {
                 // Take off the last thing we pushed to output
@@ -155,6 +165,7 @@ function infixToPrefix(sequence) {
     }
 
     output.push(...reorderStack)
+
     return output.join(" ")
 }
 

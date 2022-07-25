@@ -35,16 +35,6 @@ const isString = data => {
     return data[0] === '"' && data[data.length - 1] === '"';
 }
 
-const peeker = iterator => {
-    let peeked = iterator.next();
-    let rebuiltIterator = function*() {
-        if(peeked.done)
-            return;
-        yield peeked.value;
-        yield* iterator;
-    }
-    return { peeked, rebuiltIterator };
-}
 
 const patternsMatch = (pattern, vars) => {
     if (pattern.length !== vars.length) {
@@ -90,57 +80,69 @@ const doFunctionOperation = (func, variables) => {
     }
 }
 
-const functor = (gen, vars) => {
+const peeker = iterator => {
+    let peeked = iterator.next();
+    let rebuiltIterator = function*() {
+        if(peeked.done)
+            return;
+        yield peeked.value;
+        yield* iterator;
+    }
+    return { peeked, rebuiltIterator };
+}
+
+const functor = (gen, vars, withData) => {
 	let arg = gen.next().value;
     arg = parseToForm(arg);
 	if (arg in builtin.functions) {
 		const func = builtin.functions[arg];
 		const spreadables = func.arity[0].map(_ => {
-            const result = functor(gen, vars);
-            gen = result[0];
-            return result[1];
+            return functor(gen, vars);
         });
 		if (func.generated) {
-            return [gen, doFunctionOperation(func, spreadables)];
+            return doFunctionOperation(func, spreadables);
         }else {
-            return [gen, func.operation(...spreadables)];
+            return func.operation(...spreadables);
         }
 	} else if (arg in interpreterFunctions){
 	    const func = interpreterFunctions[arg];
         const spreadables = func.arity[0].map(_ => {
-            const result = functor(gen, vars)[1];
-            gen = result[0];
-            return result[1];
+            return functor(gen, vars);
         });
         let rebuilt = "";
         for (const a of gen) {
             rebuilt += " " + a;
         }
         rebuilt = rebuilt.trim();
-        return [gen, func.operation(...spreadables, rebuilt, vars)];
+        return func.operation(...spreadables, rebuilt, vars);
     } else {
         if (arg in vars) {
             arg = vars[arg];
         }
-        const peeked = peeker(gen);
-        if (peeked.peeked.value === "->") {
-            const toApply = gen.next().value;
-            let rebuilt = "";
-            for (const a of gen) {
-                rebuilt += " " + a;
-            }
-            let result;
-            if (!Array.isArray(arg)) {
-                result = interpretExpression(toApply + " " + arg + " " + rebuilt, vars);
-            } else {
-                result = arg.map(item => {
-                    return interpretExpression(toApply + " " + item + " " + rebuilt, vars)
+        if (arg === "->") {
+            const newSeq = rebuildUntilClosed(gen);
+            if (Array.isArray(withData)) {
+                return withData.map(d => {
+                    const newVal = {"@": d};
+                    return interpretExpression(newSeq, {...vars, ...newVal});
                 })
+            } else {
+                const newVal = {"@": withData};
+                return interpretExpression(newSeq, {...vars, ...newVal});
             }
-            return [peeked.rebuiltIterator(), result]
         }
-		return [peeked.rebuiltIterator(), arg];
+
+        return arg;
 	}
+}
+
+const rebuildUntilClosed = (gen) => {
+    const arg = gen.next().value;
+    if (arg in builtin.functions) {
+        const func = builtin.functions[arg];
+        return arg + " " + func.arity[0].map(_ => rebuildUntilClosed(gen)).join(" ");
+    }
+    return arg;
 }
 
 const isFunctionDef = (token) => {
@@ -180,15 +182,24 @@ const generateFunction = (token, action, vars) => {
 }
 
 const interpretExpression = (expr, vars) => {
-    const gen = argGenerator(expr, vars);
-    return functor(gen, vars)[1];
+    let gen = argGenerator(expr, vars);
+    let pointFreeArg = undefined;
+    let streamFinished = false;
+    while (!streamFinished) {
+        pointFreeArg = functor(gen, vars, pointFreeArg);
+        const remaining = peeker(gen);
+        if (remaining.peeked.done) {
+            streamFinished = true;
+        } else {
+            gen = remaining.rebuiltIterator();
+        }
+    }
+    return pointFreeArg;
 }
 
 const interpretLine = (line,vars) => {
 	const tokens = tokenize(line).map(token=>token.trim());
-    console.log("Original code: " + tokens[1])
     const converted = converter.infixToPrefix(tokens[1]);
-    console.log("Prefixed to: " + converted)
     if (isFunctionDef(tokens[0])) {
 	    generateFunction(tokens[0], converted, vars);
         return vars;
@@ -260,4 +271,4 @@ const interactive = () => {
 }
 
 interpretFile("code.fv");
-interactive();
+//interactive();
