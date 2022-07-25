@@ -122,14 +122,24 @@ const functor = (gen, vars, withData) => {
         if (arg === "->") {
             const newSeq = rebuildUntilClosed(gen);
             if (Array.isArray(withData)) {
-                return withData.map(d => {
-                    const newVal = {"@": d};
+                return withData.map((d,i) => {
+                    const newVal = {"@": d,"#": i};
                     return interpretExpression(newSeq, {...vars, ...newVal});
                 })
             } else {
-                const newVal = {"@": withData};
+                const newVal = {"@": withData, "#": 0};
                 return interpretExpression(newSeq, {...vars, ...newVal});
             }
+        }
+
+        if (arg === "\\>") {
+            const acc = parseToForm(gen.next().value);
+            const newSeq = rebuildUntilClosed(gen);
+            return withData.reduce((acc, v) => {
+                const newVal = {"@": v,"$": acc};
+                return interpretExpression(newSeq, {...vars, ...newVal});
+            }, acc)
+
         }
 
         return arg;
@@ -183,6 +193,13 @@ const generateFunction = (token, action, vars) => {
 
 const interpretExpression = (expr, vars) => {
     let gen = argGenerator(expr, vars);
+    let show = false;
+    const firstArg = peeker(gen);
+    if (firstArg.peeked.value === "show") {
+        show = true;
+    } else {
+        gen = firstArg.rebuiltIterator();
+    }
     let pointFreeArg = undefined;
     let streamFinished = false;
     while (!streamFinished) {
@@ -193,6 +210,9 @@ const interpretExpression = (expr, vars) => {
         } else {
             gen = remaining.rebuiltIterator();
         }
+    }
+    if (show) {
+        console.log(pointFreeArg);
     }
     return pointFreeArg;
 }
@@ -233,7 +253,7 @@ const interpretFile = (filename) => {
 }
 
 const interpreterFunctions = {
-    "if": {
+    "iff": {
         arity: [[0],[0]],
         operation: (test, remainder, vars) => {
             if (test) {
@@ -270,5 +290,4 @@ const interactive = () => {
     }
 }
 
-interpretFile("code.fv");
-//interactive();
+interactive();

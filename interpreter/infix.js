@@ -13,7 +13,7 @@ function infixToPrefix(sequence) {
     const operators = ['+','-','*','/'];
 
     const isArrow = (ctx, idx) => {
-        return ctx.length -1 > idx && (ctx[idx] === "-" && ctx[idx + 1] === ">");
+        return ctx.length -1 > idx && ((ctx[idx] === "-" || ctx[idx] === "\\") && ctx[idx + 1] === ">");
     }
 
     const addSpacesToken = (ctx, idx, offset) => {

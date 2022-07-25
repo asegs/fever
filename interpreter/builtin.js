@@ -52,6 +52,13 @@ module.exports = {
             },
             generated: false
         },
+        "if": {
+            arity: [[0,0,0],[0]],
+            operation: (a,b,c) => {
+                return a ? b : c;
+            },
+            generated: false
+        }
 
     }
 }
