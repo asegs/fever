@@ -47,7 +47,7 @@ const patternsMatch = (pattern, vars) => {
     }
     for (let i = 0 ; i < pattern.length ; i ++ ) {
         if (!isVariableName(pattern[i])) {
-            if (parseToForm(pattern[i]) !== vars[i], vars) {
+            if (parseToForm(pattern[i], vars) !== vars[i]) {
                 return false;
             }
         }
@@ -167,8 +167,8 @@ const isFunctionDef = (token) => {
 const generateFunction = (token, action, vars) => {
     const assignArgs = token.split(" ");
     const funcName = assignArgs[0];
-    const memo = funcName.startsWith("@m_");
-    const fmtFuncName = memo ? funcName.slice(3) : funcName;
+    const notMemo = funcName.startsWith("@s_");
+    const fmtFuncName = notMemo ? funcName.slice(3) : funcName;
     const args = assignArgs.slice(1);
     //Define a list of functions to perform based on supplied args pattern match.
     if (!(fmtFuncName in builtin.functions)) {
@@ -177,7 +177,7 @@ const generateFunction = (token, action, vars) => {
             operation: [],
             generated: true,
             name: fmtFuncName,
-            memoize: memo,
+            memoize: !notMemo,
             cached: {}
         }
     }
