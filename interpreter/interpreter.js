@@ -21,7 +21,7 @@ const isBoolean = (str) => {
 const isVariableName = (varName) => {
     const regex = /^[a-zA-Z_$][a-zA-Z_$0-9]*$/;
     const found = varName.match(regex);
-    return !isString(varName) && !isNumeric(varName) && !isBoolean(varName) && !!found && varName === found[0];
+    return !isArray(varName) && !isString(varName) && !isNumeric(varName) && !isBoolean(varName) && !!found && varName === found[0];
 }
 
 function* argGenerator (expression) {
@@ -40,6 +40,22 @@ const isString = data => {
     return data[0] === '"' && data[data.length - 1] === '"';
 }
 
+const arraysMatch = (a,b) => {
+    if (!Array.isArray(a) || !Array.isArray(b)) {
+        return false;
+    }
+    if (a.length !== b.length) {
+        return false;
+    }
+
+    for (let i = 0 ; i < a.length ; i ++ ) {
+        if (a[i] !== b[i]) {
+            return false;
+        }
+    }
+    return true;
+}
+
 
 const patternsMatch = (pattern, vars) => {
     if (pattern.length !== vars.length) {
@@ -47,7 +63,8 @@ const patternsMatch = (pattern, vars) => {
     }
     for (let i = 0 ; i < pattern.length ; i ++ ) {
         if (!isVariableName(pattern[i])) {
-            if (parseToForm(pattern[i], vars) !== vars[i]) {
+            const parsedPattern = parseToForm(pattern[i], vars);
+            if (parsedPattern !== vars[i] && !arraysMatch(parsedPattern, vars[i])) {
                 return false;
             }
         }

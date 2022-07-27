@@ -5,6 +5,7 @@ module.exports = {
         "if false b c = c",
         "idx a i = a \\> 0 if eq i # @ $",
         "hd a = if > len a 0 idx a 0 false",
+        "tl a = a ~> # > 0",
         "last a = idx a ((len a) - 1)",
         "set a i v = a -> if eq # i v @",
         "rev a = a -> idx a ((len a) - (#+1))",
