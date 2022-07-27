@@ -81,7 +81,13 @@ module.exports = {
                     a[i] = def;
                 }
                 return a;
-            }
+            },
+            generated: false
+        },
+        "%": {
+            arity: [[0,0],[0]],
+            operation: (a,b) => a%b,
+            generated: false
         }
 
     }

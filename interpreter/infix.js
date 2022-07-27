@@ -10,10 +10,10 @@ function infixToPrefix(sequence) {
         return operators.includes(c);
     }
 
-    const operators = ['+','-','*','/', '==','<','>'];
+    const operators = ['+','-','*','/', '==','<','>','%'];
 
     const isArrow = (ctx, idx) => {
-        return ctx.length -1 > idx && ((ctx[idx] === "-" || ctx[idx] === "\\") && ctx[idx + 1] === ">");
+        return ctx.length -1 > idx && ((ctx[idx] === "-" || ctx[idx] === "\\" || ctx[idx] === "~") && ctx[idx + 1] === ">");
     }
 
     const isEq = (ctx, idx) => {
@@ -21,7 +21,7 @@ function infixToPrefix(sequence) {
     }
 
     const wasArrow = (ctx, idx) => {
-        return ctx.length > idx && idx > 0 && ((ctx[idx - 1] === "-" || ctx[idx - 1] === "\\") && ctx[idx] === ">");
+        return ctx.length > idx && idx > 0 && ((ctx[idx - 1] === "-" || ctx[idx - 1] === "\\" || ctx[idx - 1] === "~") && ctx[idx] === ">");
     }
 
     const addSpacesToken = (ctx, idx, offset) => {
@@ -43,7 +43,7 @@ function infixToPrefix(sequence) {
             for (let i = 0 ; i < seq.length ; i ++) {
                 const char = seq[i];
                 let reassigned = false;
-                if (["+","*","/","<"].includes(char)) {
+                if (["+","*","/","<","%"].includes(char)) {
                     const token = addSpacesToken(seq,i,0);
                     seq = seq.slice(0,i) + token + seq.slice(i + 1);
                     if (token.length > 1) {

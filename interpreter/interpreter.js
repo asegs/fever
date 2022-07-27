@@ -145,7 +145,14 @@ const functor = (gen, vars, withData) => {
                 const newVal = {"@": v,"$": acc, "#": idx, "^": withData};
                 return interpretExpression(newSeq, {...vars, ...newVal});
             }, acc)
+        }
 
+        if (arg === "~>") {
+            const newSeq = rebuildUntilClosed(gen);
+            return withData.filter((item, idx) => {
+                const newVal = {"@": item,"#": idx, "^": withData};
+                return interpretExpression(newSeq, {...vars, ...newVal});
+            })
         }
 
         return arg;
