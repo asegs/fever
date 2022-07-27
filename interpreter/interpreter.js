@@ -7,7 +7,7 @@ const fs = require('fs')
 const tokenize = (line) => {
 	for (let i = 0 ; i < line.length ; i ++ ) {
 		//Ignore and exclude spaces.
-		if (line[i] === '=') {
+		if (line[i] === '=' && line[i+1] !== '=' && line[i-1] !== '=') {
 			return [line.slice(0,i), line.slice(i + 1)]
 		}
 	}
@@ -21,7 +21,7 @@ const isBoolean = (str) => {
 const isVariableName = (varName) => {
     const regex = /^[a-zA-Z_$][a-zA-Z_$0-9]*$/;
     const found = varName.match(regex);
-    return !isNumeric(varName) && !isBoolean(varName) && !!found && varName === found[0];
+    return !isString(varName) && !isNumeric(varName) && !isBoolean(varName) && !!found && varName === found[0];
 }
 
 function* argGenerator (expression) {
@@ -128,7 +128,8 @@ const functor = (gen, vars, withData) => {
             const newSeq = rebuildUntilClosed(gen);
             if (Array.isArray(withData)) {
                 return withData.map((d,i) => {
-                    const newVal = {"@": d,"#": i};
+                    //Copy withData, changes shouldn't affect everything
+                    const newVal = {"@": d,"#": i, "^": withData};
                     return interpretExpression(newSeq, {...vars, ...newVal});
                 })
             } else {
@@ -141,7 +142,7 @@ const functor = (gen, vars, withData) => {
             const acc = parseToForm(gen.next().value, vars);
             const newSeq = rebuildUntilClosed(gen);
             return withData.reduce((acc, v, idx) => {
-                const newVal = {"@": v,"$": acc, "#": idx};
+                const newVal = {"@": v,"$": acc, "#": idx, "^": withData};
                 return interpretExpression(newSeq, {...vars, ...newVal});
             }, acc)
 
@@ -181,8 +182,7 @@ const generateFunction = (token, action, vars) => {
             cached: {}
         }
     }
-    builtin.functions[fmtFuncName].operation.push(
-        {
+    builtin.functions[fmtFuncName].operation.push({
             pattern: args,
             behavior: (supplied) => {
 
@@ -226,7 +226,13 @@ const interpretLine = (line,vars) => {
 	    generateFunction(tokens[0], converted, vars);
         return vars;
     } else {
-        const result = interpretExpression(converted, vars);
+        let result;
+        try {
+            result = interpretExpression(converted, vars);
+        } catch (error) {
+            console.log("Not very good! " + error)
+            return;
+        }
         if (result === undefined || result === null) {
             ;
         } else {
@@ -308,6 +314,9 @@ const parseToRange = (arr, vars) => {
 
 //Doesn't support nested arrays.
 const parseToForm = (data, vars) => {
+    if (data === undefined) {
+        throw "Incomplete statement!"
+    }
     if (data === "true") {
         return true;
     }

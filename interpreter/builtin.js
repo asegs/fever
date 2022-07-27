@@ -38,10 +38,10 @@ module.exports = {
             },
             generated: false
         },
-        "eq": {
+        "==": {
             arity: [[0,0],[0]],
             operation: (a,b) => {
-                return a === b;
+                return a == b;
             },
             generated: false
         },
@@ -74,9 +74,13 @@ module.exports = {
             generated: false
         },
         "arr": {
-            arity: [[0],[1]],
-            operation: (n) => {
-                return new Array(n);
+            arity: [[0, 0],[1]],
+            operation: (n, def) => {
+                let a = new Array(n);
+                for (let i = 0 ; i < n ; i ++ ) {
+                    a[i] = def;
+                }
+                return a;
             }
         }
 
