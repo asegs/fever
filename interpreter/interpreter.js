@@ -47,7 +47,7 @@ const patternsMatch = (pattern, vars) => {
     }
     for (let i = 0 ; i < pattern.length ; i ++ ) {
         if (!isVariableName(pattern[i])) {
-            if (parseToForm(pattern[i]) !== vars[i]) {
+            if (parseToForm(pattern[i]) !== vars[i], vars) {
                 return false;
             }
         }
@@ -98,7 +98,7 @@ const peeker = iterator => {
 
 const functor = (gen, vars, withData) => {
 	let arg = gen.next().value;
-    arg = parseToForm(arg);
+    arg = parseToForm(arg, vars);
 	if (arg in builtin.functions) {
 		const func = builtin.functions[arg];
 		const spreadables = func.arity[0].map(_ => {
@@ -138,7 +138,7 @@ const functor = (gen, vars, withData) => {
         }
 
         if (arg === "\\>") {
-            const acc = parseToForm(gen.next().value);
+            const acc = parseToForm(gen.next().value, vars);
             const newSeq = rebuildUntilClosed(gen);
             return withData.reduce((acc, v, idx) => {
                 const newVal = {"@": v,"$": acc, "#": idx};
@@ -279,8 +279,35 @@ const isArrayIndex = (str) => {
 
 }
 
+const parseToRange = (arr, vars) => {
+    const match = /\[.\..*]/g;
+    const result = arr.match(match);
+    if (result) {
+        const tokens = arr.slice(1,arr.length - 1).split("..");
+        const t1 = tokens[0];
+        const t2 = tokens[1];
+        const t1Res = interpretExpression(t1, vars);
+        const t2Res = interpretExpression(t2, vars);
+        let result;
+        if (t1Res < t2Res) {
+            result = new Array(t2Res - t1Res);
+            for (let i = t1Res ; i <= t2Res ; i ++ ) {
+                result[i - t1Res] = i;
+            }
+        } else {
+            result = new Array(t1Res - t2Res);
+            for (let i = t1Res ; i >= t2Res ; i -- ) {
+                result[t1Res - i] = i;
+            }
+        }
+        return result;
+    }
+    const members = arr.slice(1,arr.length - 1).split(",").filter(m => m !== " " && m !== "");
+    return members.map(m => parseToForm(m), vars);
+}
+
 //Doesn't support nested arrays.
-const parseToForm = (data) => {
+const parseToForm = (data, vars) => {
     if (data === "true") {
         return true;
     }
@@ -292,8 +319,8 @@ const parseToForm = (data) => {
     } else if (isNumeric(data)) {
         return parseInt(data);
     } else if (isArray(data)) {
-        const members = data.slice(1,data.length - 1).split(",").filter(m => m !== " " && m !== "");
-        return members.map(m => parseToForm(m));
+        return parseToRange(data, vars);
+
     }
     return data
 }

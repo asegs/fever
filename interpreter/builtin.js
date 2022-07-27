@@ -72,6 +72,12 @@ module.exports = {
                 return arr.pop();
             },
             generated: false
+        },
+        "arr": {
+            arity: [[0],[1]],
+            operation: (n) => {
+                return new Array(n);
+            }
         }
 
     }
