@@ -63,7 +63,7 @@ const patternsMatch = (pattern, vars) => {
     }
     for (let i = 0 ; i < pattern.length ; i ++ ) {
         if (!isVariableName(pattern[i])) {
-            const parsedPattern = parseToForm(pattern[i], vars);
+            const parsedPattern = parseToForm(pattern[i], vars, "");
             if (parsedPattern !== vars[i] && !arraysMatch(parsedPattern, vars[i])) {
                 return false;
             }
@@ -113,13 +113,13 @@ const peeker = iterator => {
     return { peeked, rebuiltIterator };
 }
 
-const functor = (gen, vars, withData) => {
+const functor = (gen, vars, withData, location) => {
 	let arg = gen.next().value;
-    arg = parseToForm(arg, vars);
+    arg = parseToForm(arg, vars, location);
 	if (arg in builtin.functions) {
 		const func = builtin.functions[arg];
 		const spreadables = func.arity[0].map(_ => {
-            return functor(gen, vars);
+            return functor(gen, vars, withData, arg);
         });
 		if (func.generated) {
             return doFunctionOperation(func, spreadables);
@@ -129,7 +129,7 @@ const functor = (gen, vars, withData) => {
 	} else if (arg in interpreterFunctions){
 	    const func = interpreterFunctions[arg];
         const spreadables = func.arity[0].map(_ => {
-            return functor(gen, vars);
+            return functor(gen, vars, withData, arg);
         });
         let rebuilt = "";
         for (const a of gen) {
@@ -138,9 +138,6 @@ const functor = (gen, vars, withData) => {
         rebuilt = rebuilt.trim();
         return func.operation(...spreadables, rebuilt, vars);
     } else {
-        if (arg === "e") {
-            console.log("HERE")
-        }
         if (arg in vars) {
             arg = vars[arg];
         } else  if (arg in vars["_functionScoped"]) {
@@ -177,7 +174,7 @@ const functor = (gen, vars, withData) => {
         }
 
         if (arg === "\\>") {
-            const acc = parseToForm(gen.next().value, vars);
+            const acc = parseToForm(gen.next().value, vars, location);
             const newSeq = rebuildUntilClosed(gen);
             return withData.reduce((acc, v, idx) => {
                 const newVal = {"@": v,"$": acc, "#": idx, "^": withData};
@@ -253,7 +250,7 @@ const interpretExpression = (expr, vars) => {
     let pointFreeArg = undefined;
     let streamFinished = false;
     while (!streamFinished) {
-        pointFreeArg = functor(gen, vars, pointFreeArg);
+        pointFreeArg = functor(gen, vars, pointFreeArg, "");
         const remaining = peeker(gen);
         if (remaining.peeked.done) {
             streamFinished = true;
@@ -359,9 +356,9 @@ const parseToRange = (arr, vars) => {
 }
 
 //Doesn't support nested arrays.
-const parseToForm = (data, vars) => {
+const parseToForm = (data, vars, location) => {
     if (data === undefined) {
-        throw "Incomplete statement!"
+        throw "Incomplete statement!  Function " + location + " is missing arguments."
     }
     if (data === "true") {
         return true;
