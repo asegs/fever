@@ -254,7 +254,7 @@ const interpretLine = (line,vars) => {
         try {
             result = interpretExpression(converted, vars);
         } catch (error) {
-            console.log("Not very good! " + error)
+            console.log(error)
             return vars;
         }
         if (result === undefined || result === null) {
