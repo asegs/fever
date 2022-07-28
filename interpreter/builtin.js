@@ -88,6 +88,17 @@ module.exports = {
             arity: [[0,0],[0]],
             operation: (a,b) => a%b,
             generated: false
+        },
+        "random": {
+            arity: [[],[0]],
+            operation: () => Math.random(),
+            generated: false,
+            memoize: false
+        },
+        "floor": {
+            arity: [[0],[0]],
+            operation: (n) => Math.floor(n),
+            generated: false
         }
     }
 }

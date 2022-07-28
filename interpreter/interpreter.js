@@ -90,7 +90,7 @@ const doFunctionOperation = (func, variables) => {
         for (const op of operationList) {
             if (patternsMatch(op.pattern,variables)) {
                 const sig = JSON.stringify(variables);
-                if (sig in func.cached) {
+                if (func.memoize && sig in func.cached) {
                     return func.cached[sig];
                 }
                 const result = op.behavior(variables);
