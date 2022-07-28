@@ -158,6 +158,16 @@ const tests = [
         expected: 8,
         what: "Defines an arithmetic function."
     },
+    {
+        operation: () => {
+            let vars = newVars();
+            interpreter.interpretLine("square n = n * n", vars);
+            interpreter.interpretLine("cube n = n * (square n)")
+            return interpreter.interpretLine("cube 3", vars)[1];
+        },
+        expected: 27,
+        what: "Calls one function in another."
+    },
 ]
 
 interpreter.provideInterpreterFunctions();
