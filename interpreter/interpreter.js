@@ -138,9 +138,30 @@ const functor = (gen, vars, withData) => {
         rebuilt = rebuilt.trim();
         return func.operation(...spreadables, rebuilt, vars);
     } else {
+        if (arg === "e") {
+            console.log("HERE")
+        }
         if (arg in vars) {
             arg = vars[arg];
+        } else  if (arg in vars["_functionScoped"]) {
+            arg = vars["_functionScoped"][arg];
         }
+        if (arg === "=") {
+            const newSeq = rebuildUntilClosed(gen);
+            vars["_functionScoped"][withData] = interpretExpression(newSeq, vars);
+            return vars["_functionScoped"][withData];
+        }
+
+        if (arg === ";") {
+            return;
+        }
+
+        if (arg === "=!") {
+            const newSeq = rebuildUntilClosed(gen);
+            vars[withData] = interpretExpression(newSeq, vars);
+            return vars[withData];
+        }
+
         if (arg === "->") {
             const newSeq = rebuildUntilClosed(gen);
             if (Array.isArray(withData)) {
@@ -265,6 +286,7 @@ const interpretLine = (line,vars) => {
         if (tokens[0] !== '_') {
             vars[tokens[0]] = result;
         }
+        vars["_functionScoped"] = {};
         return vars;
     }
 }
@@ -359,7 +381,7 @@ const parseToForm = (data, vars) => {
 }
 
 const interactive = () => {
-    let vars = {};
+    let vars = {"_functionScoped": {}};
     loadStd(vars);
     while (true) {
         const line = prompt('>');
@@ -378,6 +400,21 @@ const loadStd = (vars) => {
     })
 }
 
+const provideInterpreterFunctions = () => {
+    builtin.functions["take"] = {
+        arity: [[0],[0]],
+        operation: (prmpt) => prompt(prmpt),
+        generated: false
+    }
 
+    builtin.functions["cast"] = {
+        arity: [[0],[0]],
+        operation: (string) => parseToForm(string,{}),
+        generated: false
+    }
+}
+
+
+provideInterpreterFunctions();
 interactive();
 // interpretFile("code.fv");

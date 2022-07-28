@@ -89,6 +89,5 @@ module.exports = {
             operation: (a,b) => a%b,
             generated: false
         }
-
     }
 }
