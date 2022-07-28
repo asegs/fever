@@ -284,7 +284,7 @@ const interpretLine = (line,vars) => {
             vars[tokens[0]] = result;
         }
         vars["_functionScoped"] = {};
-        return vars;
+        return [vars, result];
     }
 }
 
@@ -294,7 +294,7 @@ const interpretBlock = (text) => {
 	const lines = text.split("\n");
 	for (const line of lines) {
 		if (!lineIsComment(line) && line.length > 0) {
-            vars = interpretLine(line,vars);
+            vars = interpretLine(line,vars)[0];
         }
 	}
 	return vars
@@ -386,7 +386,7 @@ const interactive = () => {
             return;
         }
         if (line.length > 0 && !lineIsComment(line)) {
-            vars = interpretLine(line,vars);
+            vars = interpretLine(line,vars)[0];
         }
     }
 }
@@ -412,6 +412,12 @@ const provideInterpreterFunctions = () => {
 }
 
 
-provideInterpreterFunctions();
-interactive();
+module.exports = {
+    provideInterpreterFunctions,
+    interactive,
+    interpretLine,
+    interpretExpression,
+    interpretFile
+}
+
 // interpretFile("code.fv");
