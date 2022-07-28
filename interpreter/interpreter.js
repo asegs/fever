@@ -417,7 +417,8 @@ module.exports = {
     interactive,
     interpretLine,
     interpretExpression,
-    interpretFile
+    interpretFile,
+    arraysMatch
 }
 
 // interpretFile("code.fv");

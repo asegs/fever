@@ -17,6 +17,8 @@ module.exports = {
         "pow a b = a * pow a b - 1",
         "powi a b = arr b a \\> 1 ($ * @)",
         "interpret prompt = cast take prompt",
-        "@i_rand_range low high = diff = high - low ; (floor (diff * random)) + low"
+        "@i_rand_range low high = diff = high - low ; (floor (diff * random)) + low",
+        "! true = false",
+        "! false = true"
     ]
 }
