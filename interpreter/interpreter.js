@@ -192,7 +192,7 @@ const isFunctionDef = (token) => {
 const generateFunction = (token, action, vars) => {
     const assignArgs = token.split(" ");
     const funcName = assignArgs[0];
-    const notMemo = funcName.startsWith("@s_");
+    const notMemo = funcName.startsWith("@i_");
     const fmtFuncName = notMemo ? funcName.slice(3) : funcName;
     const args = assignArgs.slice(1);
     //Define a list of functions to perform based on supplied args pattern match.
@@ -255,7 +255,7 @@ const interpretLine = (line,vars) => {
             result = interpretExpression(converted, vars);
         } catch (error) {
             console.log("Not very good! " + error)
-            return;
+            return vars;
         }
         if (result === undefined || result === null) {
             ;
@@ -310,7 +310,7 @@ const isArrayIndex = (str) => {
 }
 
 const parseToRange = (arr, vars) => {
-    const match = /\[.\..*]/g;
+    const match = /\[.+\..*]/g;
     const result = arr.match(match);
     if (result) {
         const tokens = arr.slice(1,arr.length - 1).split("..");
