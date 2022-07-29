@@ -292,8 +292,7 @@ const interpretLine = (line,vars) => {
 }
 
 const interpretBlock = (text) => {
-	let vars = {};
-	loadStd(vars);
+	let vars = createVars();
 	const lines = text.split("\n");
 	for (const line of lines) {
         vars = interpretLine(line,vars)[0];
@@ -378,9 +377,9 @@ const parseToForm = (data, vars, location) => {
     return data
 }
 
-const interactive = () => {
-    let vars = {"_functionScoped": {}};
-    loadStd(vars);
+const interactive = (withVars) => {
+    let vars = withVars || createVars();
+
     while (true) {
         const line = prompt('>');
         if (line == null) {
@@ -410,6 +409,12 @@ const provideInterpreterFunctions = () => {
     }
 }
 
+const createVars = () => {
+    let vars = {"_functionScoped": {}};
+    loadStd(vars);
+    return vars;
+}
+
 
 module.exports = {
     provideInterpreterFunctions,
@@ -417,7 +422,8 @@ module.exports = {
     interpretLine,
     interpretExpression,
     interpretFile,
-    arraysMatch
+    arraysMatch,
+    createVars
 }
 
 interactive();
