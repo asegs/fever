@@ -25,8 +25,6 @@ const test = require('./test');
 // Create a vars object to hold runtime context
 const vars = interpreter.createVars();
 
-console.log("CHANGES ARE REFLECTED IN NPX")
-
 try {
     let inputFile = argv._[0];
     if (inputFile) { // Handle a file path as the zeroth argument
