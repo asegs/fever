@@ -200,28 +200,35 @@ const tests = [
     },
 ]
 
-interpreter.provideInterpreterFunctions();
+const runTests = () => {
+    interpreter.provideInterpreterFunctions();
 
-let passed = 0;
+    let passed = 0;
 
-for (const test of tests) {
-    const op = test.operation();
-    try {
-        if (op === test.expected || interpreter.arraysMatch(op, test.expected)) {
-            console.log("Test passed: " + test.what);
-            passed ++;
-        } else {
-            console.log("\n------------------\n")
+    for (const test of tests) {
+        const op = test.operation();
+        try {
+            if (op === test.expected || interpreter.arraysMatch(op, test.expected)) {
+                console.log("Test passed: " + test.what);
+                passed ++;
+            } else {
+                console.log("\n------------------\n")
+                console.log("Test failed: " + test.what);
+                console.log("Expected: " + test.expected);
+                console.log("Got: " + op);
+            }
+        } catch (error) {
             console.log("Test failed: " + test.what);
-            console.log("Expected: " + test.expected);
-            console.log("Got: " + op);
+            console.log("Error: " + error);
         }
-    } catch (error) {
-        console.log("Test failed: " + test.what);
-        console.log("Error: " + error);
+        clearGlobalFunctions();
     }
-    clearGlobalFunctions();
+
+    console.log("\n------------------\n")
+    console.log("Passed " + passed +"/" + tests.length + " tests.");
 }
 
-console.log("\n------------------\n")
-console.log("Passed " + passed +"/" + tests.length + " tests.");
+module.exports = {
+    runTests
+}
+

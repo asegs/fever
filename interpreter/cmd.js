@@ -10,6 +10,7 @@ if (argv.h || argv.help) {
 Options:
     -h, --help                          show this help text
     -i, --interactive                   enter the REPL on startup
+    -t, --test                          run the test file
 `)
 
     process.exit(0)
@@ -19,6 +20,7 @@ const fs = require("fs");
 const path = require("path");
 const readline = require("readline");
 const interpreter = require('./interpreter');
+const test = require('./test');
 
 // Create a vars object to hold runtime context
 const vars = interpreter.createVars();
@@ -38,10 +40,13 @@ try {
         })
     }
 
-    // Enter interactive mode if no input file, or the interactive flag is set
-    if (!inputFile || argv.i || argv.interactive) {
+    if (argv.t) {
+        test.runTests();
+    } else if (!inputFile || argv.i || argv.interactive) {
+        // Enter interactive mode if no input file, or the interactive flag is set
         interpreter.interactive(vars)
     }
+
 
 } catch (e) {
     console.error(e);
