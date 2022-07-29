@@ -26,28 +26,9 @@ const test = require('./test');
 const vars = interpreter.createVars();
 
 try {
-
-    async function streamToString(stream) {
-        // lets have a ReadableStream as a stream variable
-        const chunks = [];
-
-        for await (const chunk of stream) {
-            chunks.push(Buffer.from(chunk));
-        }
-
-        return Buffer.concat(chunks).toString("utf-8");
-    }
-
-
     let inputFile = argv._[0];
     if (inputFile) { // Handle a file path as the zeroth argument
-        const inputPath = path.resolve(inputFile);
-        if (!fs.existsSync(inputPath)) {
-            console.error("No such input file: " + inputPath);
-            process.exit(1);
-        }
-        const file = fs.readFileSync(inputPath,'utf8');
-        file.split("\n").forEach(line => interpreter.interpretLine(line, vars));
+        interpreter.loadFile(inputFile,vars);
     }
 
     if (argv.t) {

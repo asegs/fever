@@ -3,6 +3,7 @@ const builtin = require('./builtin');
 const converter = require('./infix');
 const std = require('./std');
 const fs = require('fs')
+const path = require("path");
 
 const tokenize = (line) => {
 	for (let i = 0 ; i < line.length ; i ++ ) {
@@ -238,7 +239,20 @@ const generateFunction = (token, action, vars) => {
     )
 }
 
+const splitFirstAndRest = (str) => {
+    const sep = str.indexOf(" ");
+    if (sep === -1) {
+        return [str,""];
+    }
+    return [str.slice(0,sep), str.slice(sep + 1)];
+}
+
 const interpretExpression = (expr, vars) => {
+    const firstAndLast = splitFirstAndRest(expr);
+    if (firstAndLast[0] === "import") {
+        loadFile(firstAndLast[1],vars);
+        return;
+    }
     let gen = argGenerator(expr, vars);
     let pointFreeArg = undefined;
     let streamFinished = false;
@@ -300,6 +314,16 @@ const lineIsComment = (line) => {
 const interpretFile = (filename) => {
     const data = fs.readFileSync(filename, 'utf8');
     return interpretBlock(data);
+}
+
+const loadFile = (inputFile, vars) => {
+    const inputPath = path.resolve(inputFile);
+    if (!fs.existsSync(inputPath)) {
+        console.error("No such input file: " + inputPath);
+        process.exit(1);
+    }
+    const file = fs.readFileSync(inputPath,'utf8');
+    file.split("\n").forEach(line => interpretLine(line, vars));
 }
 
 const interpreterFunctions = {
@@ -382,12 +406,6 @@ const interactive = (withVars) => {
     }
 }
 
-const loadStd = (vars) => {
-    std.fevers.map(fv => {
-        interpretLine(fv, vars);
-    })
-}
-
 const provideInterpreterFunctions = () => {
     builtin.functions["take"] = {
         arity: [[0],[0]],
@@ -404,7 +422,6 @@ const provideInterpreterFunctions = () => {
 
 const createVars = () => {
     let vars = {"_functionScoped": {}};
-    loadStd(vars);
     return vars;
 }
 
@@ -416,5 +433,6 @@ module.exports = {
     interpretExpression,
     interpretFile,
     arraysMatch,
-    createVars
+    createVars,
+    loadFile
 }

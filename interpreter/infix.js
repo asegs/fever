@@ -129,6 +129,10 @@ function infixToPrefix(sequence) {
         }).filter(t => t.text.length > 0);
     }
 
+    if (sequence.startsWith("import")) {
+        return sequence;
+    }
+
     for (let expr of tokenize(sequence)) {
         if (isOperator(expr.text)) {
             if (!reordering) {
