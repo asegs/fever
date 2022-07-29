@@ -240,13 +240,6 @@ const generateFunction = (token, action, vars) => {
 
 const interpretExpression = (expr, vars) => {
     let gen = argGenerator(expr, vars);
-    let show = false;
-    const firstArg = peeker(gen);
-    if (firstArg.peeked.value === "show") {
-        show = true;
-    } else {
-        gen = firstArg.rebuiltIterator();
-    }
     let pointFreeArg = undefined;
     let streamFinished = false;
     while (!streamFinished) {
@@ -266,14 +259,14 @@ const interpretLine = (line,vars) => {
     const converted = converter.infixToPrefix(tokens[1]);
     if (isFunctionDef(tokens[0])) {
 	    generateFunction(tokens[0], converted, vars);
-        return vars;
+        return [vars, undefined];
     } else {
         let result;
         try {
             result = interpretExpression(converted, vars);
         } catch (error) {
             console.log(error)
-            return vars;
+            return [vars, result];
         }
         if (result === undefined || result === null) {
             ;

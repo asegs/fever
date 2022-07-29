@@ -24,6 +24,7 @@ module.exports = {
         "del a i = a ~> ! @ == i",
         "sel a i = a ~> @ == i",
         "sort [] = []",
-        "sort a = (sort del a champ a) + (sel a champ a)"
+        "sort a = (sort del a champ a) + (sel a champ a)",
+        "stack_test n = show n ; stack_test n + 1",
     ]
 }
