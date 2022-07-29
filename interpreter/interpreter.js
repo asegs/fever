@@ -425,7 +425,3 @@ module.exports = {
     arraysMatch,
     createVars
 }
-
-interactive();
-
-// interpretFile("code.fv");
