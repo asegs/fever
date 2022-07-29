@@ -99,6 +99,16 @@ module.exports = {
             arity: [[0],[0]],
             operation: (n) => Math.floor(n),
             generated: false
-        }
+        },
+        "ninf": {
+            arity: [[],[0]],
+            operation: () => Number.MIN_SAFE_INTEGER,
+            generated: false
+        },
+        "inf": {
+            arity: [[],[0]],
+            operation: () => Number.MAX_SAFE_INTEGER,
+            generated: false
+        },
     }
 }

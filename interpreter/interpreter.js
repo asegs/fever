@@ -174,7 +174,7 @@ const functor = (gen, vars, withData, location) => {
         }
 
         if (arg === "\\>") {
-            const acc = parseToForm(gen.next().value, vars, location);
+            const acc = interpretExpression(rebuildUntilClosed(gen),vars);
             const newSeq = rebuildUntilClosed(gen);
             return withData.reduce((acc, v, idx) => {
                 const newVal = {"@": v,"$": acc, "#": idx, "^": withData};
@@ -420,5 +420,7 @@ module.exports = {
     interpretFile,
     arraysMatch
 }
+
+interactive();
 
 // interpretFile("code.fv");

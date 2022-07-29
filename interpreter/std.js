@@ -19,6 +19,11 @@ module.exports = {
         "interpret prompt = cast take prompt",
         "@i_rand_range low high = diff = high - low ; (floor (diff * random)) + low",
         "! true = false",
-        "! false = true"
+        "! false = true",
+        "champ a = a \\> ninf ? @ > $ @ $",
+        "del a i = a ~> ! @ == i",
+        "sel a i = a ~> @ == i",
+        "sort [] = []",
+        "sort a = (sort del a champ a) + (sel a champ a)"
     ]
 }

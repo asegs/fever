@@ -168,6 +168,36 @@ const tests = [
         expected: 27,
         what: "Calls one function in another."
     },
+    {
+        operation: () => {
+            let vars = newVars();
+            interpreter.interpretLine("s 1 = 1", vars);
+            interpreter.interpretLine("s n = n + (s n - 1)", vars);
+            return interpreter.interpretLine("s 5", vars)[1];
+        },
+        expected: 15,
+        what: "Uses pattern matching to perform a recursive sum."
+    },
+    {
+        operation: () => {
+            let vars = newVars();
+            interpreter.interpretLine("f \"a\" = true", vars);
+            interpreter.interpretLine("f x = x", vars);
+            return interpreter.interpretLine("f \"a\"", vars)[1];
+        },
+        expected: true,
+        what: "Uses pattern matching on strings for boolean."
+    },
+    {
+        operation: () => {
+            let vars = newVars();
+            interpreter.interpretLine("f \"a\" = true", vars);
+            interpreter.interpretLine("f x = x", vars);
+            return interpreter.interpretLine("f \"hello\"", vars)[1];
+        },
+        expected: "hello",
+        what: "Uses pattern matching on strings for string."
+    },
 ]
 
 interpreter.provideInterpreterFunctions();
