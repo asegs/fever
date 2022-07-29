@@ -1,7 +1,11 @@
 {
   "name": "fever",
   "version": "1.0.0",
+  "bin": {
+    "fever": "./interpreter/cmd.js"
+  },
   "dependencies": {
+    "minimist": "^1.2.6",
     "prompt-sync": "^4.2.0"
   }
 }

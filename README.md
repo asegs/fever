@@ -1,7 +1,7 @@
 # Fever: A Guide
 
 ## How to run?
-Currently, Fever can be run only in interactive mode by running `node interpreter.js`.
+Currently, Fever can be run only in interactive mode by running `node interpreter/interactive.js`.
 
 ## The basics
 Fever is a loosely functional, point free programming language with a lot of bugs.

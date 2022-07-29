@@ -255,6 +255,9 @@ const interpretExpression = (expr, vars) => {
 }
 
 const interpretLine = (line,vars) => {
+    if (line.length === 0 || lineIsComment(line)) {
+        return vars;
+    }
 	const tokens = tokenize(line).map(token=>token.trim());
     const converted = converter.infixToPrefix(tokens[1]);
     if (isFunctionDef(tokens[0])) {
@@ -282,13 +285,10 @@ const interpretLine = (line,vars) => {
 }
 
 const interpretBlock = (text) => {
-	let vars = {};
-	loadStd(vars);
+	let vars = createVars();
 	const lines = text.split("\n");
 	for (const line of lines) {
-		if (!lineIsComment(line) && line.length > 0) {
-            vars = interpretLine(line,vars)[0];
-        }
+        vars = interpretLine(line,vars)[0];
 	}
 	return vars
 }
@@ -370,17 +370,15 @@ const parseToForm = (data, vars, location) => {
     return data
 }
 
-const interactive = () => {
-    let vars = {"_functionScoped": {}};
-    loadStd(vars);
+const interactive = (withVars) => {
+    let vars = withVars || createVars();
+
     while (true) {
         const line = prompt('>');
         if (line == null) {
             return;
         }
-        if (line.length > 0 && !lineIsComment(line)) {
-            vars = interpretLine(line,vars)[0];
-        }
+        vars = interpretLine(line,vars)[0];
     }
 }
 
@@ -404,6 +402,12 @@ const provideInterpreterFunctions = () => {
     }
 }
 
+const createVars = () => {
+    let vars = {"_functionScoped": {}};
+    loadStd(vars);
+    return vars;
+}
+
 
 module.exports = {
     provideInterpreterFunctions,
@@ -411,9 +415,6 @@ module.exports = {
     interpretLine,
     interpretExpression,
     interpretFile,
-    arraysMatch
+    arraysMatch,
+    createVars
 }
-
-interactive();
-
-// interpretFile("code.fv");
