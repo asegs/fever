@@ -262,6 +262,9 @@ const interpretExpression = (expr, vars) => {
 }
 
 const interpretLine = (line,vars) => {
+    if (line.length === 0 || lineIsComment(line)) {
+        return vars;
+    }
 	const tokens = tokenize(line).map(token=>token.trim());
     const converted = converter.infixToPrefix(tokens[1]);
     if (isFunctionDef(tokens[0])) {
@@ -293,9 +296,7 @@ const interpretBlock = (text) => {
 	loadStd(vars);
 	const lines = text.split("\n");
 	for (const line of lines) {
-		if (!lineIsComment(line) && line.length > 0) {
-            vars = interpretLine(line,vars)[0];
-        }
+        vars = interpretLine(line,vars)[0];
 	}
 	return vars
 }
@@ -385,9 +386,7 @@ const interactive = () => {
         if (line == null) {
             return;
         }
-        if (line.length > 0 && !lineIsComment(line)) {
-            vars = interpretLine(line,vars)[0];
-        }
+        vars = interpretLine(line,vars)[0];
     }
 }
 
