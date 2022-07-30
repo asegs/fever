@@ -56,6 +56,19 @@ const arraysMatch = (a,b) => {
     return true;
 }
 
+const extractVarFromExpr = (expr) => {
+    const tokens = converter.splitOnSpaces(expr);
+    const v = tokens.filter(t => isVariableName(t));
+    if (v.length === 1) {
+        return v[0];
+    }
+    if (v.length === 0) {
+        return '';
+    }
+
+    throw "You can't have two variables in a pattern match!"
+}
+
 
 const patternsMatch = (pattern, vars) => {
     if (pattern.length !== vars.length) {
@@ -64,10 +77,11 @@ const patternsMatch = (pattern, vars) => {
     for (let i = 0 ; i < pattern.length ; i ++ ) {
         if (!isVariableName(pattern[i])) {
             const parsedPattern = parseToForm(pattern[i], vars, "");
-            console.log(parsedPattern)
             if (isFunctionDef(parsedPattern)) {
-                console.log(vars)
-                if (!interpretExpression(parsedPattern, vars, true)) {
+                const varName = extractVarFromExpr(parsedPattern);
+                const args = {};
+                args[varName] = vars[i];
+                if (!interpretExpression(parsedPattern, args, true)) {
                     return false;
                 }
             } else if (parsedPattern !== vars[i] && !arraysMatch(parsedPattern, vars[i])) {
@@ -100,7 +114,9 @@ const doFunctionOperation = (func, variables) => {
                     return func.cached[sig];
                 }
                 const result = op.behavior(variables);
-                func.cached[sig] = result;
+                if (func.memoize) {
+                    func.cached[sig] = result;
+                }
                 return result;
             }
         }
@@ -226,7 +242,7 @@ const generateFunction = (token, action, vars) => {
 
                 const suppliedMap = {};
                 for (let i = 0 ; i < assignArgs.length ; i ++ ) {
-                    suppliedMap[assignArgs[i]] = supplied[i];
+                    suppliedMap[extractVarFromExpr(assignArgs[i])] = supplied[i];
                 }
                 return interpretExpression(action, {...vars, ...suppliedMap});
             }
