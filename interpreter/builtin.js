@@ -110,5 +110,15 @@ module.exports = {
             operation: () => Number.MAX_SAFE_INTEGER,
             generated: false
         },
+        "&": {
+            arity: [[0,0],[0]],
+            operation: (a,b) => a && b,
+            generated: false
+        },
+        "|": {
+            arity: [[0,0],[0]],
+            operation: (a,b) => a || b,
+            generated: false
+        }
     }
 }

@@ -59,14 +59,15 @@ const arraysMatch = (a,b) => {
 const extractVarFromExpr = (expr) => {
     const tokens = converter.splitOnSpaces(expr);
     const v = tokens.filter(t => isVariableName(t));
-    if (v.length === 1) {
+    const varCount = new Set(v).size;
+    if (varCount === 1) {
         return v[0];
     }
-    if (v.length === 0) {
+    if (varCount === 0) {
         return '';
     }
 
-    throw "You can't have two variables in a pattern match!"
+    throw "You can't have " + varCount + " variables in a pattern match!"
 }
 
 
