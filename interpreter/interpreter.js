@@ -126,17 +126,6 @@ const functor = (gen, vars, withData, location) => {
         }else {
             return func.operation(...spreadables);
         }
-	} else if (arg in interpreterFunctions){
-	    const func = interpreterFunctions[arg];
-        const spreadables = func.arity[0].map(_ => {
-            return functor(gen, vars, withData, arg);
-        });
-        let rebuilt = "";
-        for (const a of gen) {
-            rebuilt += " " + a;
-        }
-        rebuilt = rebuilt.trim();
-        return func.operation(...spreadables, rebuilt, vars);
     } else {
         if (arg in vars) {
             arg = vars[arg];
@@ -307,18 +296,6 @@ const loadFile = (inputFile, vars) => {
     }
     const file = fs.readFileSync(inputPath,'utf8');
     file.split("\n").forEach(line => interpretLine(line, vars,true));
-}
-
-const interpreterFunctions = {
-    "iff": {
-        arity: [[0],[0]],
-        operation: (test, remainder, vars) => {
-            if (test) {
-                interpretExpression(remainder, vars)
-            }
-        },
-        generated: false
-    }
 }
 
 const isArrayIndex = (str) => {
