@@ -1,7 +1,6 @@
 const prompt = require('prompt-sync')();
 const builtin = require('./builtin');
 const converter = require('./infix');
-const std = require('./std');
 const fs = require('fs')
 const path = require("path");
 
@@ -250,7 +249,7 @@ const splitFirstAndRest = (str) => {
 const interpretExpression = (expr, vars) => {
     const firstAndLast = splitFirstAndRest(expr);
     if (firstAndLast[0] === "import") {
-        loadFile(firstAndLast[1],vars);
+        loadFile(firstAndLast[1].endsWith(".fv") ? firstAndLast[1] : firstAndLast[1] + ".fv",vars);
         return;
     }
     let gen = argGenerator(expr, vars);
