@@ -1,0 +1,8 @@
+fib (n > -1) & (n < 2) = n
+fib n = (fib (n-1)) + (fib (n-2))
+square n = n * n
+pow a 0 = 1
+pow a b = a * pow a b - 1
+powi a b = arr b a \> 1 ($ * @)
+@i_rand_range low high = diff = high - low ; (floor (diff * random)) + low
+neg n = n * -1

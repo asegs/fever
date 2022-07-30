@@ -1,0 +1,7 @@
+import ../lib/std
+
+x = 3
+z = 5
+show x + z
+
+fib 6
