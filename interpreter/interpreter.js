@@ -21,7 +21,7 @@ const isBoolean = (str) => {
 const isVariableName = (varName) => {
     const regex = /^[a-zA-Z_$][a-zA-Z_$0-9]*$/;
     const found = varName.match(regex);
-    return !isArray(varName) && !isString(varName) && !isNumeric(varName) && !isBoolean(varName) && !!found && varName === found[0];
+    return !isFunctionDef(varName) && !isArray(varName) && !isString(varName) && !isNumeric(varName) && !isBoolean(varName) && !!found && varName === found[0];
 }
 
 function* argGenerator (expression) {
@@ -64,7 +64,13 @@ const patternsMatch = (pattern, vars) => {
     for (let i = 0 ; i < pattern.length ; i ++ ) {
         if (!isVariableName(pattern[i])) {
             const parsedPattern = parseToForm(pattern[i], vars, "");
-            if (parsedPattern !== vars[i] && !arraysMatch(parsedPattern, vars[i])) {
+            console.log(parsedPattern)
+            if (isFunctionDef(parsedPattern)) {
+                console.log(vars)
+                if (!interpretExpression(parsedPattern, vars, true)) {
+                    return false;
+                }
+            } else if (parsedPattern !== vars[i] && !arraysMatch(parsedPattern, vars[i])) {
                 return false;
             }
         }
@@ -129,7 +135,7 @@ const functor = (gen, vars, withData, location) => {
     } else {
         if (arg in vars) {
             arg = vars[arg];
-        } else  if (arg in vars["_functionScoped"]) {
+        } else  if ("_functionScoped" in vars && arg in vars["_functionScoped"]) {
             arg = vars["_functionScoped"][arg];
         }
         let newSeq;
@@ -185,7 +191,7 @@ const rebuildUntilClosed = (gen) => {
 }
 
 const isFunctionDef = (token) => {
-    return token.includes(" ");
+    return typeof token === "string" && token.includes(" ");
 }
 
 const generateFunction = (token, action, vars) => {
