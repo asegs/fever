@@ -189,15 +189,24 @@ const isFunctionDef = (token) => {
 }
 
 const generateFunction = (token, action, vars) => {
-    const assignArgs = token.split(" ");
-    const funcName = assignArgs[0];
+    const firstSpace = token.indexOf(' ');
+    const funcName = token.slice(0,firstSpace);
+    const rest = converter.infixToPrefix(token.slice(firstSpace + 1));
+    const assignArgs = [];
+    let section;
+    const gen = argGenerator(rest);
+    while (section = rebuildUntilClosed(gen)) {
+        if (section === '') {
+            break;
+        }
+        assignArgs.push(section);
+    }
     const notMemo = funcName.startsWith("@i_");
     const fmtFuncName = notMemo ? funcName.slice(3) : funcName;
-    const args = assignArgs.slice(1);
     //Define a list of functions to perform based on supplied args pattern match.
     if (!(fmtFuncName in builtin.functions)) {
         builtin.functions[fmtFuncName] = {
-            arity: [args.map(_=>0),[0]],
+            arity: [assignArgs.map(_=>0),[0]],
             operation: [],
             generated: true,
             name: fmtFuncName,
@@ -206,12 +215,12 @@ const generateFunction = (token, action, vars) => {
         }
     }
     builtin.functions[fmtFuncName].operation.push({
-            pattern: args,
+            pattern: assignArgs,
             behavior: (supplied) => {
 
                 const suppliedMap = {};
-                for (let i = 0 ; i < args.length ; i ++ ) {
-                    suppliedMap[args[i]] = supplied[i];
+                for (let i = 0 ; i < assignArgs.length ; i ++ ) {
+                    suppliedMap[assignArgs[i]] = supplied[i];
                 }
                 return interpretExpression(action, {...vars, ...suppliedMap});
             }

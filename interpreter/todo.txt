@@ -2,3 +2,4 @@ Multiline statements in transforms
 Better tokenizing
 Passing functions as args (look up string in function table)
 Array indexing
+More advanced pattern matching
