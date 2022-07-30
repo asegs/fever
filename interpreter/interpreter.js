@@ -132,54 +132,46 @@ const functor = (gen, vars, withData, location) => {
         } else  if (arg in vars["_functionScoped"]) {
             arg = vars["_functionScoped"][arg];
         }
-        if (arg === "=") {
-            const newSeq = rebuildUntilClosed(gen);
-            vars["_functionScoped"][withData] = interpretExpression(newSeq, vars);
-            return vars["_functionScoped"][withData];
-        }
-
-        if (arg === ";") {
-            return;
-        }
-
-        if (arg === "=!") {
-            const newSeq = rebuildUntilClosed(gen);
-            vars[withData] = interpretExpression(newSeq, vars);
-            return vars[withData];
-        }
-
-        if (arg === "->") {
-            const newSeq = rebuildUntilClosed(gen);
-            if (Array.isArray(withData)) {
-                return withData.map((d,i) => {
-                    //Copy withData, changes shouldn't affect everything
-                    const newVal = {"@": d,"#": i, "^": withData};
+        let newSeq;
+        switch (arg) {
+            case "=":
+                newSeq = rebuildUntilClosed(gen);
+                vars["_functionScoped"][withData] = interpretExpression(newSeq, vars);
+                return vars["_functionScoped"][withData];
+            case ";":
+                return;
+            case "=!":
+                newSeq = rebuildUntilClosed(gen);
+                vars[withData] = interpretExpression(newSeq, vars);
+                return vars[withData];
+            case "->":
+                newSeq = rebuildUntilClosed(gen);
+                if (Array.isArray(withData)) {
+                    return withData.map((d,i) => {
+                        //Copy withData, changes shouldn't affect everything
+                        const newVal = {"@": d,"#": i, "^": withData};
+                        return interpretExpression(newSeq, {...vars, ...newVal});
+                    })
+                } else {
+                    const newVal = {"@": withData, "#": 0};
                     return interpretExpression(newSeq, {...vars, ...newVal});
-                })
-            } else {
-                const newVal = {"@": withData, "#": 0};
-                return interpretExpression(newSeq, {...vars, ...newVal});
-            }
+                }
+            case "\\>":
+                const acc = interpretExpression(rebuildUntilClosed(gen),vars);
+                newSeq = rebuildUntilClosed(gen);
+                return withData.reduce((acc, v, idx) => {
+                    const newVal = {"@": v,"$": acc, "#": idx, "^": withData};
+                    return interpretExpression(newSeq, {...vars, ...newVal});
+                }, acc);
+            case "~>":
+                newSeq = rebuildUntilClosed(gen);
+                return withData.filter((item, idx) => {
+                    const newVal = {"@": item,"#": idx, "^": withData};
+                    return interpretExpression(newSeq, {...vars, ...newVal});
+                });
+            default:
+                return arg;
         }
-
-        if (arg === "\\>") {
-            const acc = interpretExpression(rebuildUntilClosed(gen),vars);
-            const newSeq = rebuildUntilClosed(gen);
-            return withData.reduce((acc, v, idx) => {
-                const newVal = {"@": v,"$": acc, "#": idx, "^": withData};
-                return interpretExpression(newSeq, {...vars, ...newVal});
-            }, acc)
-        }
-
-        if (arg === "~>") {
-            const newSeq = rebuildUntilClosed(gen);
-            return withData.filter((item, idx) => {
-                const newVal = {"@": item,"#": idx, "^": withData};
-                return interpretExpression(newSeq, {...vars, ...newVal});
-            })
-        }
-
-        return arg;
 	}
 }
 
