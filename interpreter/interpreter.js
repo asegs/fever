@@ -267,7 +267,7 @@ const interpretExpression = (expr, vars) => {
     return pointFreeArg;
 }
 
-const interpretLine = (line,vars) => {
+const interpretLine = (line,vars,suppressOutput) => {
     if (line.length === 0 || lineIsComment(line)) {
         return vars;
     }
@@ -284,7 +284,7 @@ const interpretLine = (line,vars) => {
             console.log(error)
             return [vars, result];
         }
-        if (result === undefined || result === null) {
+        if (suppressOutput || result === undefined || result === null) {
             ;
         } else {
             console.log(result);
@@ -296,25 +296,9 @@ const interpretLine = (line,vars) => {
         return [vars, result];
     }
 }
-
-const interpretBlock = (text) => {
-	let vars = createVars();
-	const lines = text.split("\n");
-	for (const line of lines) {
-        vars = interpretLine(line,vars)[0];
-	}
-	return vars
-}
-
 const lineIsComment = (line) => {
     return line[0] === '/';
 }
-
-const interpretFile = (filename) => {
-    const data = fs.readFileSync(filename, 'utf8');
-    return interpretBlock(data);
-}
-
 const loadFile = (inputFile, vars) => {
     const inputPath = path.resolve(inputFile);
     if (!fs.existsSync(inputPath)) {
@@ -322,7 +306,7 @@ const loadFile = (inputFile, vars) => {
         process.exit(1);
     }
     const file = fs.readFileSync(inputPath,'utf8');
-    file.split("\n").forEach(line => interpretLine(line, vars));
+    file.split("\n").forEach(line => interpretLine(line, vars,true));
 }
 
 const interpreterFunctions = {
@@ -345,7 +329,7 @@ const isArrayIndex = (str) => {
 }
 
 const parseToRange = (arr, vars) => {
-    const match = /\[.+\..*]/g;
+    const match = /\[.+\.\..*]/g;
     const result = arr.match(match);
     if (result) {
         const tokens = arr.slice(1,arr.length - 1).split("..");
@@ -385,7 +369,7 @@ const parseToForm = (data, vars, location) => {
     if (isString(data)) {
         return data.slice(1,data.length - 1);
     } else if (isNumeric(data)) {
-        return parseInt(data);
+        return Number(data);
     } else if (isArray(data)) {
         return parseToRange(data, vars);
 
@@ -401,7 +385,7 @@ const interactive = (withVars) => {
         if (line == null) {
             return;
         }
-        vars = interpretLine(line,vars)[0];
+        vars = interpretLine(line,vars, false)[0];
     }
 }
 
@@ -420,8 +404,7 @@ const provideInterpreterFunctions = () => {
 }
 
 const createVars = () => {
-    let vars = {"_functionScoped": {}};
-    return vars;
+    return {"_functionScoped": {}};
 }
 
 
@@ -430,7 +413,6 @@ module.exports = {
     interactive,
     interpretLine,
     interpretExpression,
-    interpretFile,
     arraysMatch,
     createVars,
     loadFile

@@ -36,6 +36,19 @@ function infixToPrefix(sequence) {
         return builder;
     }
 
+    const lastCharIsSemantic = (ctx, idx) => {
+        const generalSemanticChars = [',','=','[','(']
+        for (let i = idx - 1 ; i >= 0 ; i -- ) {
+            const char = ctx[i];
+            if (char === ' ') {
+                continue;
+            }
+            return [...generalSemanticChars, ...operators].includes(char);
+
+        }
+        return true;
+    }
+
     const addSpaces = (seq) => {
         let finished = false;
         while (!finished) {
@@ -61,7 +74,7 @@ function infixToPrefix(sequence) {
                     if (token.length > 2) {
                         reassigned = true;
                     }
-                } else if (char === "-" || (char === ">" && !wasArrow(seq,i))){
+                } else if ((char === "-" && !lastCharIsSemantic(seq,i)) || (char === ">" && !wasArrow(seq,i))){
                     const token = addSpacesToken(seq,i,0);
                     seq = seq.slice(0,i) + token + seq.slice(i + 1);
                     if (token.length > 1) {
