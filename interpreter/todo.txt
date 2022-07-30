@@ -2,6 +2,4 @@ Multiline statements in transforms
 Better tokenizing
 Passing functions as args (look up string in function table)
 Array indexing
-More advanced pattern matching
--Vars filled in in order
--f n < 2 = 0 , f 1, n becomes 1 due to order.
+func (-1) vs f - 1, can we tell them apart?
