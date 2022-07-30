@@ -25,7 +25,7 @@ const isVariableName = (varName) => {
 }
 
 function* argGenerator (expression) {
-    const chunks = expression.split(" ").filter(c => c !== "");
+    const chunks = converter.splitOnSpaces(expression).filter(c => c !== "");
     for (let i = 0 ; i < chunks.length ; i ++ ) {
         yield chunks[i].replace(/[)}{(]/g, '');
     }
@@ -287,6 +287,7 @@ const loadFile = (inputFile, vars) => {
         process.exit(1);
     }
     const file = fs.readFileSync(inputPath,'utf8');
+    provideInterpreterFunctions();
     file.split("\n").forEach(line => interpretLine(line, vars,true));
 }
 
@@ -348,7 +349,7 @@ const parseToForm = (data, vars, location) => {
 
 const interactive = (withVars) => {
     let vars = withVars || createVars();
-
+    provideInterpreterFunctions();
     while (true) {
         const line = prompt('>');
         if (line == null) {

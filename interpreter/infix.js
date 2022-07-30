@@ -1,3 +1,46 @@
+const splitOnSpaces = (word) => {
+    let quotesEncountered = 0;
+    let openBrackets = 0;
+    const spaces = [0];
+    for (let i = 0 ; i < word.length ; i ++ ) {
+        const char = word[i];
+        if (char === '"') {
+            quotesEncountered++;
+        } else if (char === '[') {
+            openBrackets++;
+        } else if (char === ']') {
+            openBrackets--;
+        } else if (char === ' ') {
+            if (quotesEncountered % 2 === 1) {
+                continue;
+            }
+            if (lastRealChar(word,i) === ',') {
+                continue;
+            }
+            spaces.push(i);
+        }
+    }
+
+    const tokens = new Array(spaces.length);
+    for (let i = 0 ;  i < spaces.length - 1 ; i ++ ) {
+        tokens[i] = word.slice(spaces[i],spaces[i+1]);
+    }
+    tokens[spaces.length - 1] = word.slice(spaces[spaces.length - 1])
+    return tokens.map(t => t.trim());
+}
+
+const lastRealChar = (ctx, idx) => {
+    for (let i = idx - 1 ; i >= 0 ; i -- ) {
+        const char = ctx[i];
+        if (char === ' ') {
+            continue;
+        }
+        return char;
+
+    }
+    return '';
+}
+
 function infixToPrefix(sequence) {
     const output = []
     const operatorStack = []
@@ -37,17 +80,11 @@ function infixToPrefix(sequence) {
     }
 
     const lastCharIsSemantic = (ctx, idx) => {
-        const generalSemanticChars = [',','=','[','(']
-        for (let i = idx - 1 ; i >= 0 ; i -- ) {
-            const char = ctx[i];
-            if (char === ' ') {
-                continue;
-            }
-            return [...generalSemanticChars, ...operators].includes(char);
-
-        }
-        return true;
+        const generalSemanticChars = [',','=','[','(','']
+        return [...generalSemanticChars,...operators].includes(lastRealChar(ctx,idx));
     }
+
+
 
     const addSpaces = (seq) => {
         let finished = false;
@@ -136,7 +173,7 @@ function infixToPrefix(sequence) {
             if (token.paren) {
                 return [token];
             }
-            return token.text.split(" ").map(v => {
+            return splitOnSpaces(token.text).map(v => {
                 return {text: v, paren: false}
             })
         }).filter(t => t.text.length > 0);
@@ -201,4 +238,4 @@ function infixToPrefix(sequence) {
     }).join(" ");
 }
 
-module.exports = {infixToPrefix}
+module.exports = {infixToPrefix,splitOnSpaces}
