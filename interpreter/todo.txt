@@ -1,6 +1,4 @@
 Multiline statements in transforms
 Better tokenizing
-Why can't "?" be a string?
 Passing functions as args (look up string in function table)
-Spaces in strings
 Array indexing
