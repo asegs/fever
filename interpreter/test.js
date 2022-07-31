@@ -166,7 +166,7 @@ const tests = [
         operation: () => {
             let vars = newVars();
             interpret("square n = n * n", vars);
-            interpret("cube n = n * (square n)")
+            interpret("cube n = n * (square n)", vars)
             return interpret("cube 3", vars)[1];
         },
         expected: 27,
@@ -208,8 +208,11 @@ const runTests = () => {
     interpreter.provideInterpreterFunctions();
 
     let passed = 0;
+    let tRuns = 0;
 
     for (const test of tests) {
+        console.log("Test #" + tRuns);
+        tRuns++;
         const op = test.operation();
         try {
             if (op === test.expected || interpreter.arraysMatch(op, test.expected)) {
@@ -232,7 +235,26 @@ const runTests = () => {
     console.log("Passed " + passed +"/" + tests.length + " tests.");
 }
 
+const runTest = (n) => {
+    const test = tests[n];
+    const op = test.operation();
+    try {
+        if (op === test.expected || interpreter.arraysMatch(op, test.expected)) {
+            console.log("Test passed: " + test.what);
+        } else {
+            console.log("\n------------------\n")
+            console.log("Test failed: " + test.what);
+            console.log("Expected: " + test.expected);
+            console.log("Got: " + op);
+        }
+    } catch (error) {
+        console.log("Test failed: " + test.what);
+        console.log("Error: " + error);
+    }
+}
+
 module.exports = {
-    runTests
+    runTests,
+    runTest
 }
 

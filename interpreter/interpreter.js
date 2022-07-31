@@ -56,9 +56,9 @@ const arraysMatch = (a,b) => {
     return true;
 }
 
-const extractVarFromExpr = (expr) => {
+const extractVarFromExpr = (expr, globals) => {
     const tokens = converter.splitOnSpaces(expr);
-    const v = tokens.filter(t => isVariableName(t));
+    const v = tokens.filter(t => isVariableName(t)).filter(t => !(t in globals));
     const varCount = new Set(v).size;
     if (varCount === 1) {
         return v[0];
@@ -71,7 +71,7 @@ const extractVarFromExpr = (expr) => {
 }
 
 
-const patternsMatch = (pattern, vars) => {
+const patternsMatch = (pattern, vars, globals) => {
     if (pattern.length !== vars.length) {
         return false;
     }
@@ -79,10 +79,10 @@ const patternsMatch = (pattern, vars) => {
         if (!isVariableName(pattern[i])) {
             const parsedPattern = parseToForm(pattern[i], vars, "");
             if (isFunctionDef(parsedPattern)) {
-                const varName = extractVarFromExpr(parsedPattern);
+                const varName = extractVarFromExpr(parsedPattern, globals);
                 const args = {};
                 args[varName] = vars[i];
-                if (!interpretExpression(parsedPattern, args, true)) {
+                if (!interpretExpression(parsedPattern, {...args, ...globals}, true)) {
                     return false;
                 }
             } else if (parsedPattern !== vars[i] && !arraysMatch(parsedPattern, vars[i])) {
@@ -94,7 +94,7 @@ const patternsMatch = (pattern, vars) => {
 }
 
 
-const doFunctionOperation = (func, variables) => {
+const doFunctionOperation = (func, variables, globals) => {
     if (Array.isArray(func.operation)) {
         let operationList = func.operation;
         operationList.sort((a,b) => {
@@ -109,7 +109,7 @@ const doFunctionOperation = (func, variables) => {
             return 0;
         })
         for (const op of operationList) {
-            if (patternsMatch(op.pattern,variables)) {
+            if (patternsMatch(op.pattern,variables, globals)) {
                 const sig = JSON.stringify(variables);
                 if (func.memoize && sig in func.cached) {
                     return func.cached[sig];
@@ -145,7 +145,7 @@ const functor = (gen, vars, withData, location) => {
             return functor(gen, vars, withData, arg);
         });
 		if (func.generated) {
-            return doFunctionOperation(func, spreadables);
+            return doFunctionOperation(func, spreadables, vars);
         }else {
             return func.operation(...spreadables);
         }
@@ -243,7 +243,7 @@ const generateFunction = (token, action, vars) => {
 
                 const suppliedMap = {};
                 for (let i = 0 ; i < assignArgs.length ; i ++ ) {
-                    suppliedMap[extractVarFromExpr(assignArgs[i])] = supplied[i];
+                    suppliedMap[extractVarFromExpr(assignArgs[i], vars)] = supplied[i];
                 }
                 return interpretExpression(action, {...vars, ...suppliedMap});
             }

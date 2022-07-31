@@ -11,6 +11,7 @@ Options:
     -h, --help                          show this help text
     -i, --interactive                   enter the REPL on startup
     -t, --test                          run the test file
+    -n, --num                           run a test by number
 `)
 
     process.exit(0)
@@ -25,14 +26,19 @@ const test = require('./test');
 // Create a vars object to hold runtime context
 const vars = interpreter.createVars();
 
+
 try {
     let inputFile = argv._[0];
     if (inputFile) { // Handle a file path as the zeroth argument
         interpreter.loadFile(inputFile,vars);
     }
 
-    if (argv.t) {
-        test.runTests();
+    if (argv.t || argv.n) {
+        if (argv.n) {
+            test.runTest(argv.n)
+        }else {
+            test.runTests()
+        }
     } else if (!inputFile || argv.i || argv.interactive) {
         // Enter interactive mode if no input file, or the interactive flag is set
         interpreter.interactive(vars)
