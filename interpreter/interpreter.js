@@ -75,19 +75,23 @@ const patternsMatch = (pattern, vars, globals) => {
     if (pattern.length !== vars.length) {
         return false;
     }
+    const innerVars = {};
     for (let i = 0 ; i < pattern.length ; i ++ ) {
         if (!isVariableName(pattern[i])) {
             const parsedPattern = parseToForm(pattern[i], vars, "");
             if (isFunctionDef(parsedPattern)) {
-                const varName = extractVarFromExpr(parsedPattern, globals);
+                const varName = extractVarFromExpr(parsedPattern, {...globals, ...innerVars});
                 const args = {};
                 args[varName] = vars[i];
-                if (!interpretExpression(parsedPattern, {...args, ...globals}, true)) {
+                if (!interpretExpression(parsedPattern, {...args, ...globals, ...innerVars}, true)) {
                     return false;
                 }
+                innerVars[varName] = vars[i];
             } else if (parsedPattern !== vars[i] && !arraysMatch(parsedPattern, vars[i])) {
                 return false;
             }
+        } else {
+            innerVars[pattern[i]] = vars[i];
         }
     }
     return true;
@@ -242,8 +246,11 @@ const generateFunction = (token, action, vars) => {
             behavior: (supplied) => {
 
                 const suppliedMap = {};
+                const innerVars = {};
                 for (let i = 0 ; i < assignArgs.length ; i ++ ) {
-                    suppliedMap[extractVarFromExpr(assignArgs[i], vars)] = supplied[i];
+                    const varName = extractVarFromExpr(assignArgs[i], {...vars, ...innerVars});
+                    suppliedMap[varName] = supplied[i];
+                    innerVars[varName] = supplied[i];
                 }
                 return interpretExpression(action, {...vars, ...suppliedMap});
             }
