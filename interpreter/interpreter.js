@@ -100,11 +100,6 @@ const patternsMatch = (pattern, vars, globals) => {
             innerVars[pattern[i]] = vars[i];
         }
     }
-    if (pattern.length === 4) {
-        console.log(pattern)
-        console.log(vars)
-        console.log(globals)
-    }
     return true;
 }
 
@@ -139,17 +134,6 @@ const doFunctionOperation = (func, variables, globals) => {
         throw "Non exhaustive pattern match with function: " + func.name;
     }
 }
-
-// const peeker = iterator => {
-//     let peeked = iterator.next();
-//     let rebuiltIterator = function*() {
-//         if(peeked.done)
-//             return;
-//         yield peeked.value;
-//         yield* iterator;
-//     }
-//     return { peeked, rebuiltIterator };
-// }
 
 const functor = (gen, vars, withData, location) => {
 	let arg = gen.next();
@@ -226,11 +210,16 @@ const rebuildUntilClosed = (gen) => {
 }
 
 const isFunctionDef = (token) => {
-    return typeof token === "string" && token.includes(" ");
+    return typeof token === "string" && (token.includes(" ") || token.startsWith("@f_"));
 }
 
 const generateFunction = (token, action, vars) => {
-    const firstSpace = token.indexOf(' ');
+    let firstSpace = token.indexOf(' ');
+    if (firstSpace === -1) {
+        //Zero arg function
+        token = token.slice(3);
+        firstSpace = token.length;
+    }
     const funcName = token.slice(0,firstSpace);
     const rest = converter.infixToPrefix(token.slice(firstSpace + 1));
     const assignArgs = [];
