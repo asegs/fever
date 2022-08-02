@@ -214,11 +214,13 @@ const isFunctionDef = (token) => {
 }
 
 const generateFunction = (token, action, vars) => {
+    let zeroArgFunction = false;
     let firstSpace = token.indexOf(' ');
     if (firstSpace === -1) {
         //Zero arg function
         token = token.slice(3);
         firstSpace = token.length;
+        zeroArgFunction = true;
     }
     const funcName = token.slice(0,firstSpace);
     const rest = converter.infixToPrefix(token.slice(firstSpace + 1));
@@ -240,7 +242,7 @@ const generateFunction = (token, action, vars) => {
             operation: [],
             generated: true,
             name: fmtFuncName,
-            memoize: !notMemo,
+            memoize: !(notMemo || zeroArgFunction),
             cached: {}
         }
     }
