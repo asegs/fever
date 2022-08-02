@@ -119,6 +119,14 @@ module.exports = {
             arity: [[0,0],[0]],
             operation: (a,b) => a || b,
             generated: false
+        },
+        "idx": {
+            arity: [[1,0],[0]],
+            operation: (a,i) => {
+                return a[i]
+            },
+            generated: false
         }
+
     }
 }
