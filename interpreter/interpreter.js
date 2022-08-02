@@ -1,6 +1,7 @@
 const prompt = require('prompt-sync')();
 const builtin = require('./builtin');
 const converter = require('./infix');
+const iter = require('./iter');
 const fs = require('fs')
 const path = require("path");
 
@@ -24,11 +25,16 @@ const isVariableName = (varName) => {
     return !isFunctionDef(varName) && !isArray(varName) && !isString(varName) && !isNumeric(varName) && !isBoolean(varName) && !!found && varName === found[0];
 }
 
-function* argGenerator (expression) {
+// function* argGenerator (expression) {
+//     const chunks = converter.splitOnSpaces(expression).filter(c => c !== "");
+//     for (let i = 0 ; i < chunks.length ; i ++ ) {
+//         yield chunks[i].replace(/[)}{(]/g, '');
+//     }
+// }
+
+const argGenerator = (expression) => {
     const chunks = converter.splitOnSpaces(expression).filter(c => c !== "");
-    for (let i = 0 ; i < chunks.length ; i ++ ) {
-        yield chunks[i].replace(/[)}{(]/g, '');
-    }
+    return new iter.Iterator(chunks);
 }
 
 
@@ -94,6 +100,11 @@ const patternsMatch = (pattern, vars, globals) => {
             innerVars[pattern[i]] = vars[i];
         }
     }
+    if (pattern.length === 4) {
+        console.log(pattern)
+        console.log(vars)
+        console.log(globals)
+    }
     return true;
 }
 
@@ -129,19 +140,19 @@ const doFunctionOperation = (func, variables, globals) => {
     }
 }
 
-const peeker = iterator => {
-    let peeked = iterator.next();
-    let rebuiltIterator = function*() {
-        if(peeked.done)
-            return;
-        yield peeked.value;
-        yield* iterator;
-    }
-    return { peeked, rebuiltIterator };
-}
+// const peeker = iterator => {
+//     let peeked = iterator.next();
+//     let rebuiltIterator = function*() {
+//         if(peeked.done)
+//             return;
+//         yield peeked.value;
+//         yield* iterator;
+//     }
+//     return { peeked, rebuiltIterator };
+// }
 
 const functor = (gen, vars, withData, location) => {
-	let arg = gen.next().value;
+	let arg = gen.next();
     arg = parseToForm(arg, vars, location);
 	if (arg in builtin.functions) {
 		const func = builtin.functions[arg];
@@ -161,10 +172,13 @@ const functor = (gen, vars, withData, location) => {
         }
         let newSeq;
         switch (arg) {
+            //With assign, should find lowest scope where this exists, and set there, otherwise, create in this scope.
             case "=":
+                const prevVariableName = [gen.peekBack()];
                 newSeq = rebuildUntilClosed(gen);
-                vars["_functionScoped"][withData] = interpretExpression(newSeq, vars);
-                return vars["_functionScoped"][withData];
+                const res = interpretExpression(newSeq, vars)
+                vars["_functionScoped"][prevVariableName] = res;
+                return vars["_functionScoped"][prevVariableName];
             case ";":
                 return;
             case "=!":
@@ -203,7 +217,7 @@ const functor = (gen, vars, withData, location) => {
 }
 
 const rebuildUntilClosed = (gen) => {
-    const arg = gen.next().value;
+    const arg = gen.next();
     if (arg in builtin.functions) {
         const func = builtin.functions[arg];
         return arg + " " + func.arity[0].map(_ => rebuildUntilClosed(gen)).join(" ");
@@ -274,15 +288,8 @@ const interpretExpression = (expr, vars) => {
     }
     let gen = argGenerator(expr, vars);
     let pointFreeArg = undefined;
-    let streamFinished = false;
-    while (!streamFinished) {
+    while (!gen.atEnd()) {
         pointFreeArg = functor(gen, vars, pointFreeArg, "");
-        const remaining = peeker(gen);
-        if (remaining.peeked.done) {
-            streamFinished = true;
-        } else {
-            gen = remaining.rebuiltIterator();
-        }
     }
     return pointFreeArg;
 }
@@ -390,7 +397,7 @@ const interactive = (withVars) => {
     let vars = withVars || createVars();
     provideInterpreterFunctions();
     while (true) {
-        const line = prompt('>');
+        const line = prompt('ᐅ ');
         if (line == null) {
             return;
         }

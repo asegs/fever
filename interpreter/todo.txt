@@ -4,3 +4,4 @@ Passing functions as args (look up string in function table)
 Array indexing
 func (-1) vs f - 1, can we tell them apart?
 In advanced pattern match, use previous variables as arguments in later conditions
+f n n = f with two numbers, the same!
