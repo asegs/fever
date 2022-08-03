@@ -5,4 +5,5 @@ pow a 0 = 1
 pow a b = a * pow a b - 1
 powi a b = arr b a \> 1 ($ * @)
 @i_rand_range low high = diff = high - low ; (floor (diff * random)) + low
-neg n = n * -1
+even n = (n % 2) == 0
+odd n = (n % 2) == 1

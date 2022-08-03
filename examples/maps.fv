@@ -1,0 +1,9 @@
+import ../lib/maps
+
+init = new_map
+inter = map_add_val init "key" 333
+final = map_add_val inter "pair" 555
+show inter
+show final
+show map_has final "boot"
+show map_get final "key"

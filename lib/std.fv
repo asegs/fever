@@ -1,7 +1,8 @@
 len a = a \> 0 $ + 1
+neg n = n * -1
 ? true b c = b
 ? false b c = c
-idx a i = a \> 0 ? i == # @ $
+/idx a i = a \> 0 ? i == # @ $
 hd a = ? > len a 0 idx a 0 false
 tl a = a ~> # > 0
 last a = idx a ((len a) - 1)
@@ -15,4 +16,13 @@ del a i = a ~> ! @ == i
 sel a i = a ~> @ == i
 sort [] = []
 sort a = (sort del a champ a) + (sel a champ a)
+slice a start end = a ~> (# > (start - 1)) & (end > #)
 stack_test n = show n ; stack_test n + 1
+midpoint a = floor (len a) / 2
+bin_cond a x offset mid val == x rx = mid + offset
+bin_cond a x offset mid x < val rx = bin_search slice a 0 mid x offset rx
+bin_cond a x offset mid x > val rx = bin_search slice a mid + 1 len a x (offset + mid + 1) rx
+bin_search [] x offset rx = ? rx offset neg 1
+bin_search a x offset rx = mid = midpoint a ; val = idx a mid ; bin_cond a x offset mid val rx
+bins a x return_expected = bin_search a x 0 return_expected
+last_idx a = (len a) - 1

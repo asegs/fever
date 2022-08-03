@@ -1,0 +1,11 @@
+import ../lib/std
+import ../lib/math
+
+/Maps are immutable, map write operations return a new map.
+@f_new_map = []
+map_keys m = m ~> even #
+map_vals m = m ~> odd #
+map_add_val_idx m key val index = (slice m 0 index) + [key,val] + (slice m index len m)
+map_add_val m key val = index = bins map_keys m key true ; map_add_val_idx m key val index * 2
+map_has m key = (bins map_keys m key false) > neg 1
+map_get m key = index = bins map_keys m key false ; idx m (1 + (2 * index))
