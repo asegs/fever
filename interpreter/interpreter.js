@@ -25,13 +25,6 @@ const isVariableName = (varName) => {
     return !isFunctionDef(varName) && !isArray(varName) && !isString(varName) && !isNumeric(varName) && !isBoolean(varName) && !!found && varName === found[0];
 }
 
-// function* argGenerator (expression) {
-//     const chunks = converter.splitOnSpaces(expression).filter(c => c !== "");
-//     for (let i = 0 ; i < chunks.length ; i ++ ) {
-//         yield chunks[i].replace(/[)}{(]/g, '');
-//     }
-// }
-
 const argGenerator = (expression) => {
     const chunks = converter.splitOnSpaces(expression).filter(c => c !== "");
     return new iter.Iterator(chunks);
@@ -249,7 +242,6 @@ const generateFunction = (token, action, vars) => {
     builtin.functions[fmtFuncName].operation.push({
             pattern: assignArgs,
             behavior: (supplied) => {
-
                 const suppliedMap = {};
                 const innerVars = {};
                 for (let i = 0 ; i < assignArgs.length ; i ++ ) {
@@ -359,7 +351,7 @@ const parseToRange = (arr, vars) => {
         return result;
     }
     const members = arr.slice(1,arr.length - 1).split(",").filter(m => m !== " " && m !== "");
-    return members.map(m => parseToForm(m), vars);
+    return members.map(m => parseToForm(m,vars,"range"), vars);
 }
 
 //Doesn't support nested arrays.
@@ -377,6 +369,10 @@ const parseToForm = (data, vars, location) => {
         return data.slice(1,data.length - 1);
     } else if (isNumeric(data)) {
         return Number(data);
+    } else if (data in vars) {
+        return vars[data];
+    } else if ("_functionScoped" in vars && data in vars["_functionScoped"]) {
+        return vars["_functionScoped"][data];
     } else if (isArray(data)) {
         return parseToRange(data, vars);
 
@@ -405,7 +401,7 @@ const provideInterpreterFunctions = () => {
 
     builtin.functions["cast"] = {
         arity: [[0],[0]],
-        operation: (string) => parseToForm(string,{}),
+        operation: (string) => parseToForm(string,{}, "cast"),
         generated: false
     }
 }
