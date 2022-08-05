@@ -5,3 +5,7 @@ Array indexing
 func (-1) vs f - 1, can we tell them apart?
 In advanced pattern match, use previous variables as arguments in later conditions
 f n n = f with two numbers, the same!
+
+Continue statement in arrow functions where encountering assignment or semicolon
+x = 0
+[1..5] -> x =! @ fails, since it sees the = sign as the separator

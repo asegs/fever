@@ -159,9 +159,11 @@ const functor = (gen, vars, withData, location) => {
             case ";":
                 return;
             case "=!":
+                const globalVariableName = [gen.peekBack()];
                 newSeq = rebuildUntilClosed(gen);
-                vars[withData] = interpretExpression(newSeq, vars);
-                return vars[withData];
+                const globalResponse = interpretExpression(newSeq, vars)
+                vars[globalVariableName] = globalResponse;
+                return vars[globalVariableName];
             case "->":
                 newSeq = rebuildUntilClosed(gen);
                 if (Array.isArray(withData)) {
@@ -195,10 +197,25 @@ const functor = (gen, vars, withData, location) => {
 
 const rebuildUntilClosed = (gen) => {
     const arg = gen.next();
+    if (['=','=!',';'].includes(arg)) {
+        return arg + " " + rebuildUntilClosed(gen);
+    }
+    if (['->','~>'].includes(arg)) {
+        return arg + " " + rebuildUntilClosed(gen) + " " + rebuildUntilClosed(gen);
+    }
+
+    if (['\\>'].includes(arg)) {
+        return arg + " " + rebuildUntilClosed(gen) + " " + rebuildUntilClosed(gen) + " " + rebuildUntilClosed(gen);
+    }
+
     if (arg in builtin.functions) {
         const func = builtin.functions[arg];
         return arg + " " + func.arity[0].map(_ => rebuildUntilClosed(gen)).join(" ");
     }
+    if (['=','=!','->','~>','\\>'].includes(gen.peek())) {
+        return arg + " " + rebuildUntilClosed(gen);
+    }
+
     return arg;
 }
 

@@ -120,13 +120,31 @@ module.exports = {
             operation: (a,b) => a || b,
             generated: false
         },
+        //Rewritten in JS for speed and better time complexity.
         "idx": {
             arity: [[1,0],[0]],
             operation: (a,i) => {
                 return a[i]
             },
             generated: false
+        },
+        "len": {
+            arity: [[1],[0]],
+            operation: (a) => a.length,
+            generated: false
+        },
+        "slice": {
+            arity: [[1,0,0],[1]],
+            operation: (a,s,e) => a.slice(s,e),
+            generated: false
+        },
+        "set": {
+            arity: [[1,0,0],[]],
+            operation: (a, i, v) => {
+                a[i] = v;
+                return;
+            },
+            generated: false
         }
-
     }
 }

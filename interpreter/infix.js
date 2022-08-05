@@ -80,7 +80,7 @@ function infixToPrefix(sequence) {
     }
 
     const lastCharIsSemantic = (ctx, idx) => {
-        const generalSemanticChars = [',','=','[','(','']
+        const generalSemanticChars = [',','=','[','(','', '!']
         return [...generalSemanticChars,...operators].includes(lastRealChar(ctx,idx));
     }
 
