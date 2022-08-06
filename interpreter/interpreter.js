@@ -135,12 +135,10 @@ const functor = (gen, vars, withData, location) => {
 	let arg = gen.next();
     arg = parseToForm(arg, vars, location);
 	if (arg in builtin.functions) {
-	    vars.enterScope();
 		const func = builtin.functions[arg];
 		const spreadables = func.arity[0].map(_ => {
             return functor(gen, vars, withData, arg);
         });
-		vars.exitScope();
 		if (func.generated) {
             return doFunctionOperation(func, spreadables, vars);
         }else {
@@ -289,11 +287,13 @@ const interpretExpression = (expr, vars) => {
         loadFile(firstAndLast[1].endsWith(".fv") ? firstAndLast[1] : firstAndLast[1] + ".fv",vars);
         return;
     }
+    vars.enterScope();
     let gen = argGenerator(expr, vars);
     let pointFreeArg = undefined;
     while (!gen.atEnd()) {
         pointFreeArg = functor(gen, vars, pointFreeArg, "");
     }
+    vars.exitScope();
     return pointFreeArg;
 }
 
