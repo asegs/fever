@@ -2,6 +2,7 @@ const prompt = require('prompt-sync')();
 const builtin = require('./builtin');
 const converter = require('./infix');
 const iter = require('./iter');
+const scope = require('./scopedVars');
 const fs = require('fs')
 const path = require("path");
 
@@ -75,14 +76,16 @@ const patternsMatch = (pattern, vars, globals) => {
         return false;
     }
     const innerVars = {};
+    const allGlobals = globals.flattenToMap();
     for (let i = 0 ; i < pattern.length ; i ++ ) {
         if (!isVariableName(pattern[i])) {
+            //Include globals here.
             const parsedPattern = parseToForm(pattern[i], vars, "");
             if (isFunctionDef(parsedPattern)) {
-                const varName = extractVarFromExpr(parsedPattern, {...globals, ...innerVars});
+                const varName = extractVarFromExpr(parsedPattern, {...allGlobals, ...innerVars});
                 const args = {};
                 args[varName] = vars[i];
-                if (!interpretExpression(parsedPattern, {...args, ...globals, ...innerVars}, true)) {
+                if (!interpretExpression(parsedPattern, {...args, ...allGlobals, ...innerVars}, true)) {
                     return false;
                 }
                 innerVars[varName] = vars[i];
@@ -132,20 +135,20 @@ const functor = (gen, vars, withData, location) => {
 	let arg = gen.next();
     arg = parseToForm(arg, vars, location);
 	if (arg in builtin.functions) {
+	    vars.enterScope();
 		const func = builtin.functions[arg];
 		const spreadables = func.arity[0].map(_ => {
             return functor(gen, vars, withData, arg);
         });
+		vars.exitScope();
 		if (func.generated) {
             return doFunctionOperation(func, spreadables, vars);
         }else {
             return func.operation(...spreadables);
         }
     } else {
-        if (arg in vars) {
-            arg = vars[arg];
-        } else  if ("_functionScoped" in vars && arg in vars["_functionScoped"]) {
-            arg = vars["_functionScoped"][arg];
+	    if (vars.hasVariable(arg)) {
+	        arg = vars.lookupValue(arg)
         }
         let newSeq;
         switch (arg) {
@@ -153,41 +156,41 @@ const functor = (gen, vars, withData, location) => {
             case "=":
                 const prevVariableName = [gen.peekBack()];
                 newSeq = rebuildUntilClosed(gen);
-                const res = interpretExpression(newSeq, vars)
-                vars["_functionScoped"][prevVariableName] = res;
-                return vars["_functionScoped"][prevVariableName];
+                const res = interpretExpression(newSeq, vars);
+                vars.assignValue(prevVariableName, res);
+                return res;
             case ";":
                 return;
             case "=!":
-                const globalVariableName = [gen.peekBack()];
+                const globalVariableName = gen.peekBack();
                 newSeq = rebuildUntilClosed(gen);
                 const globalResponse = interpretExpression(newSeq, vars)
-                vars[globalVariableName] = globalResponse;
-                return vars[globalVariableName];
+                vars.assignVariableUpScope(globalVariableName, globalResponse);
+                return globalResponse;
             case "->":
                 newSeq = rebuildUntilClosed(gen);
                 if (Array.isArray(withData)) {
                     return withData.map((d,i) => {
                         //Copy withData, changes shouldn't affect everything
                         const newVal = {"@": d,"#": i, "^": withData};
-                        return interpretExpression(newSeq, {...vars, ...newVal});
+                        return interpretExpression(newSeq, {...vars.flattenToMap(), ...newVal});
                     })
                 } else {
                     const newVal = {"@": withData, "#": 0};
-                    return interpretExpression(newSeq, {...vars, ...newVal});
+                    return interpretExpression(newSeq, {...vars.flattenToMap(), ...newVal});
                 }
             case "\\>":
                 const acc = interpretExpression(rebuildUntilClosed(gen),vars);
                 newSeq = rebuildUntilClosed(gen);
                 return withData.reduce((acc, v, idx) => {
                     const newVal = {"@": v,"$": acc, "#": idx, "^": withData};
-                    return interpretExpression(newSeq, {...vars, ...newVal});
+                    return interpretExpression(newSeq, {...vars.flattenToMap(), ...newVal});
                 }, acc);
             case "~>":
                 newSeq = rebuildUntilClosed(gen);
                 return withData.filter((item, idx) => {
                     const newVal = {"@": item,"#": idx, "^": withData};
-                    return interpretExpression(newSeq, {...vars, ...newVal});
+                    return interpretExpression(newSeq, {...vars.flattenToMap(), ...newVal});
                 });
             default:
                 return arg;
@@ -262,11 +265,11 @@ const generateFunction = (token, action, vars) => {
                 const suppliedMap = {};
                 const innerVars = {};
                 for (let i = 0 ; i < assignArgs.length ; i ++ ) {
-                    const varName = extractVarFromExpr(assignArgs[i], {...vars, ...innerVars});
+                    const varName = extractVarFromExpr(assignArgs[i], {...vars.flattenToMap(), ...innerVars});
                     suppliedMap[varName] = supplied[i];
                     innerVars[varName] = supplied[i];
                 }
-                return interpretExpression(action, {...vars, ...suppliedMap});
+                return interpretExpression(action, {...vars.flattenToMap(), ...suppliedMap});
             }
         }
     )
@@ -317,9 +320,8 @@ const interpretLine = (line,vars,suppressOutput) => {
             console.log(result);
         }
         if (tokens[0] !== '_') {
-            vars[tokens[0]] = result;
+            vars.assignValue(tokens[0],result);
         }
-        vars["_functionScoped"] = {};
         return [vars, result];
     }
 }
@@ -386,10 +388,8 @@ const parseToForm = (data, vars, location) => {
         return data.slice(1,data.length - 1);
     } else if (isNumeric(data)) {
         return Number(data);
-    } else if (data in vars) {
-        return vars[data];
-    } else if ("_functionScoped" in vars && data in vars["_functionScoped"]) {
-        return vars["_functionScoped"][data];
+    } else if (vars.hasVariable(data)) {
+        return vars.lookupValue(data);
     } else if (isArray(data)) {
         return parseToRange(data, vars);
 
@@ -424,7 +424,7 @@ const provideInterpreterFunctions = () => {
 }
 
 const createVars = () => {
-    return {"_functionScoped": {}};
+    return new scope.ScopedVars();
 }
 
 
